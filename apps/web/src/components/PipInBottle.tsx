@@ -1,12 +1,18 @@
 // Static 2D Pip for the Phase 0 shell and the no-3D fallback.
 // Phase 2 replaces this on capable devices with the real-time 3D tidepool.
 
-type Props = { className?: string; fill?: number };
+type Props = { className?: string; fill?: number; label?: string };
 
-export function PipInBottle({ className, fill = 0.62 }: Props) {
-  const level = 150 - Math.max(0, Math.min(1, fill)) * 92;
+export function PipInBottle({ className, fill = 0.62, label }: Props) {
+  // The water is drawn full and slid down, so the level can animate with a CSS transform.
+  const drop = (1 - Math.max(0, Math.min(1, fill))) * 92;
   return (
-    <svg className={className} viewBox="0 0 360 200" role="img" aria-label="Pip the hermit crab peeking out of his glass bottle, which is partly full of water.">
+    <svg
+      className={className}
+      viewBox="0 0 360 200"
+      role="img"
+      aria-label={label ?? 'Pip the hermit crab peeking out of his glass bottle, which is partly full of water.'}
+    >
       <defs>
         <clipPath id="pib-body">
           <path d="M70 70 Q70 52 92 52 H222 Q246 52 262 66 L282 82 H300 V118 H282 L262 134 Q246 148 222 148 H92 Q70 148 70 130 Z" />
@@ -15,8 +21,10 @@ export function PipInBottle({ className, fill = 0.62 }: Props) {
       <rect width="360" height="200" fill="#0E3A49" />
       <path d="M0 170 Q90 160 180 170 T360 168 V200 H0 Z" fill="#165363" />
       <g clipPath="url(#pib-body)">
-        <rect x="60" y={level} width="250" height="120" fill="#4FC0B2" />
-        <path d={`M60 ${level} Q120 ${level - 6} 180 ${level} T310 ${level}`} fill="none" stroke="#CFF3EC" strokeWidth="3" />
+        <g className="pib-water" style={{ transform: `translateY(${drop}px)` }}>
+          <rect x="60" y="58" width="250" height="120" fill="#4FC0B2" />
+          <path d="M60 58 Q120 52 180 58 T310 58" fill="none" stroke="#CFF3EC" strokeWidth="3" />
+        </g>
       </g>
       <path
         d="M70 70 Q70 52 92 52 H222 Q246 52 262 66 L282 82 H300 V118 H282 L262 134 Q246 148 222 148 H92 Q70 148 70 130 Z"

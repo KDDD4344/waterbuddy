@@ -1,9 +1,20 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-test('the app shell loads with its wordmark', async ({ page }) => {
+async function onboard(page: Page) {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1, name: 'WaterBuddy' })).toBeVisible();
-  await expect(page.getByRole('img', { name: /Pip the hermit crab/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Let’s set up' }).click();
+  await page.getByRole('radio', { name: /18 to 64/ }).check();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Start filling' }).click();
+  await expect(page.getByRole('button', { name: /Log 250 millilitres/ })).toBeVisible();
+}
+
+const stat = (page: Page) => page.getByLabel("Today's progress");
+
+test('first run starts with Pip saying hello', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: 'Hi, I’m Pip' })).toBeVisible();
 });
 
 test('the app is installable: manifest with icons', async ({ page, request }) => {
@@ -18,12 +29,35 @@ test('the app is installable: manifest with icons', async ({ page, request }) =>
   expect(sizes).toContain('512x512');
 });
 
-test('a service worker is registered for offline use', async ({ page }) => {
-  await page.goto('/');
-  const registered = await page.evaluate(async () => {
-    if (!('serviceWorker' in navigator)) return false;
-    const reg = await navigator.serviceWorker.ready;
-    return Boolean(reg.active);
+test('a logged drink survives closing and reopening the app', async ({ page }) => {
+  await onboard(page);
+  await page.getByRole('button', { name: /Log 250 millilitres/ }).click();
+  await expect(stat(page)).toContainText('250 millilitres of 2 litres');
+  await page.reload();
+  await expect(stat(page)).toContainText('250 millilitres of 2 litres');
+});
+
+test('logging takes under 2 seconds from tap to updated total', async ({ page }) => {
+  await onboard(page);
+  const start = Date.now();
+  await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('500 millilitres of 2 litres');
+  expect(Date.now() - start).toBeLessThan(2000);
+});
+
+test('works in airplane mode after the first visit', async ({ page, context }) => {
+  await onboard(page);
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
   });
-  expect(registered).toBe(true);
+  // Make sure the service worker controls the page before going offline.
+  await page.reload();
+  await expect(page.getByRole('button', { name: /Log 250 millilitres/ })).toBeVisible();
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('button', { name: /Log 250 millilitres/ })).toBeVisible();
+  await page.getByRole('button', { name: /Log 250 millilitres/ }).click();
+  await expect(stat(page)).toContainText('250 millilitres of 2 litres');
+  await context.setOffline(false);
 });

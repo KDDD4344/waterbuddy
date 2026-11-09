@@ -60,8 +60,8 @@ Read [`docs/safety-rules.md`](docs/safety-rules.md) before building any feature 
 | | Phase | Status |
 |---|---|---|
 | 0 | Foundations | Done |
-| 1 | The tracker, no 3D yet | Next |
-| 2 | Pip and the tidepool | |
+| 1 | The tracker, no 3D yet | Done |
+| 2 | Pip and the tidepool | Next |
 | 3 | Field tasks and the journal | |
 | 4 | Night voyage and postcards | |
 | 5 | The Waterverse | |

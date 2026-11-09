@@ -1,81 +1,61 @@
-import { useEffect, useState } from 'react';
-import { getApiHealth, type ApiHealth } from './lib/api';
-import { useOfflineReady } from './lib/offline';
-import { isInstalled, isIos } from './lib/pwa';
-import { PipInBottle } from './components/PipInBottle';
-import './App.css';
+import { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type Profile } from './data/db';
+import { ToastProvider } from './ui/toast';
+import { Onboarding } from './screens/Onboarding';
+import { Today } from './screens/Today';
+import { History } from './screens/History';
+import { You } from './screens/You';
+import './ui.css';
 
-type Check = { id: string; label: string; ok: boolean | null; detail: string };
-
-function apiCheck(h: ApiHealth | null): Check {
-  if (!h) return { id: 'api', label: 'Python server', ok: null, detail: 'Checking…' };
-  if (h.state === 'online') return { id: 'api', label: 'Python server', ok: true, detail: `Online, version ${h.version}` };
-  if (h.state === 'not-configured') return { id: 'api', label: 'Python server', ok: null, detail: 'Not connected in this build' };
-  return { id: 'api', label: 'Python server', ok: false, detail: `Unreachable (${h.reason}). The app still works.` };
-}
+type Tab = 'today' | 'history' | 'you';
+const LOADING = Symbol('loading');
 
 export default function App() {
-  const offline = useOfflineReady();
-  const [installed] = useState(isInstalled);
-  const [health, setHealth] = useState<ApiHealth | null>(null);
+  const profile = useLiveQuery(() => db.profile.get('me'), [], LOADING as unknown as Profile | undefined | typeof LOADING);
+  return <ToastProvider>{profile === LOADING ? <Splash /> : profile ? <Main profile={profile} /> : <Onboarding />}</ToastProvider>;
+}
 
-  useEffect(() => {
-    let alive = true;
-    getApiHealth().then((h) => alive && setHealth(h));
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const checks: Check[] = [
-    {
-      id: 'install',
-      label: 'Installed as an app',
-      ok: installed ? true : null,
-      detail: installed ? 'Running from your home screen' : isIos() ? 'Share, then “Add to Home Screen”' : 'Use your browser’s Install option'
-    },
-    {
-      id: 'offline',
-      label: 'Works offline',
-      ok: offline ? true : null,
-      detail: offline
-        ? 'App saved on this device'
-        : import.meta.env.DEV
-          ? 'Switched off in development; on in the installed build'
-          : 'Saving the app for offline use…'
-    },
-    apiCheck(health)
-  ];
-
+function Splash() {
   return (
-    <main className="shell">
-      <header className="masthead">
-        <p className="kicker">Phase 0 · foundations</p>
-        <h1 className="wordmark">WaterBuddy</h1>
-        <p className="tagline">Fill Pip&rsquo;s bottle today. Get a postcard tomorrow.</p>
-      </header>
-
-      <PipInBottle className="hero" />
-
-      <section className="checks" aria-labelledby="checks-title">
-        <h2 id="checks-title">Foundations check</h2>
-        <ul>
-          {checks.map((c) => (
-            <li key={c.id} className="check" data-state={c.ok === true ? 'ok' : c.ok === false ? 'fail' : 'wait'}>
-              <span className="mark" aria-hidden="true">
-                {c.ok === true ? '✓' : c.ok === false ? '!' : '…'}
-              </span>
-              <span className="text">
-                <span className="label">{c.label}</span>
-                <span className="detail">{c.detail}</span>
-              </span>
-              <span className="sr-only">{c.ok === true ? 'Done.' : c.ok === false ? 'Problem.' : 'Not yet.'}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <footer className="foot">The tracker arrives in Phase 1. Pip and the tidepool arrive in Phase 2.</footer>
+    <main className="screen splash" aria-busy="true">
+      <p className="wordmark">WaterBuddy</p>
     </main>
+  );
+}
+
+function Main({ profile }: { profile: Profile }) {
+  const [tab, setTab] = useState<Tab>('today');
+  return (
+    <div className="app">
+      {tab === 'today' && <Today profile={profile} />}
+      {tab === 'history' && <History profile={profile} />}
+      {tab === 'you' && <You profile={profile} />}
+      <nav className="tabbar" aria-label="Main">
+        <TabButton id="today" current={tab} onSelect={setTab} label="Today">
+          <path d="M6 3h12l-1.5 17a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" />
+          <path d="M6.5 11c2-1 3.5 1 5.5 0s3.5-1 5.5 0" />
+        </TabButton>
+        <TabButton id="history" current={tab} onSelect={setTab} label="History">
+          <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+        </TabButton>
+        <TabButton id="you" current={tab} onSelect={setTab} label="You">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+        </TabButton>
+      </nav>
+    </div>
+  );
+}
+
+function TabButton({ id, current, onSelect, label, children }: { id: Tab; current: Tab; onSelect: (t: Tab) => void; label: string; children: React.ReactNode }) {
+  const active = id === current;
+  return (
+    <button type="button" className="tab" aria-current={active ? 'page' : undefined} onClick={() => onSelect(id)}>
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        {children}
+      </svg>
+      {label}
+    </button>
   );
 }

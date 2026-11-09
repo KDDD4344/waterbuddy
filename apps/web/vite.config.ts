@@ -39,7 +39,8 @@ export default defineConfig({
       devOptions: { enabled: false }
     })
   ],
-  server: { port: 5175, strictPort: false },
+  // The app imports sourced facts from the repo-level content/ folder.
+  server: { port: 5175, strictPort: false, fs: { allow: ['.', '../../content'] } },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

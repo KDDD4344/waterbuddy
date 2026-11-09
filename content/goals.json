@@ -1,0 +1,65 @@
+{
+  "note": "Suggested starting points for a daily drinks goal. People can always change them. Health reviewer must confirm before release.",
+  "food_share_note": "EFSA's references are for total water, which includes the water in food. These suggestions assume food supplies about a fifth.",
+  "bands": [
+    {
+      "id": "4-8",
+      "label": "4 to 8",
+      "suggested_ml": 1250,
+      "range_ml": [800, 1800],
+      "parent_setup": true,
+      "why": "EFSA's reference for ages 4 to 8 is about 1.6 litres of total water a day, including food. With about a fifth from food, that leaves roughly 1.25 litres from drinks.",
+      "source_ids": ["efsa-2010"]
+    },
+    {
+      "id": "9-13",
+      "label": "9 to 13",
+      "suggested_ml": 1600,
+      "range_ml": [1000, 2400],
+      "parent_setup": true,
+      "why": "EFSA's reference for ages 9 to 13 is about 1.9 litres (girls) to 2.1 litres (boys) of total water a day, including food. That is roughly 1.6 litres from drinks.",
+      "source_ids": ["efsa-2010"]
+    },
+    {
+      "id": "14-17",
+      "label": "14 to 17",
+      "suggested_ml": 1800,
+      "range_ml": [1200, 3000],
+      "parent_setup": false,
+      "why": "From age 14, EFSA uses adult references: about 2.0 litres (women) to 2.5 litres (men) of total water a day, including food. That is roughly 1.6 to 2.0 litres from drinks.",
+      "source_ids": ["efsa-2010"]
+    },
+    {
+      "id": "18-64",
+      "label": "18 to 64",
+      "suggested_ml": 2000,
+      "range_ml": [1200, 3500],
+      "parent_setup": false,
+      "why": "India's NIN 2024 guideline describes about 2 litres of water a day, including other drinks, for a healthy adult, and more in hot weather or with hard exercise.",
+      "source_ids": ["nin-2024"]
+    },
+    {
+      "id": "65+",
+      "label": "65 or older",
+      "suggested_ml": 1800,
+      "range_ml": [1000, 3000],
+      "parent_setup": false,
+      "why": "EFSA uses the same references for older adults as for other adults: about 2.0 to 2.5 litres of total water a day, including food. That is roughly 1.6 to 2.0 litres from drinks.",
+      "source_ids": ["efsa-2010"]
+    }
+  ],
+  "sources": [
+    {
+      "id": "efsa-2010",
+      "title": "EFSA Scientific Opinion on Dietary Reference Values for water (2010)",
+      "url": "https://www.efsa.europa.eu/en/efsajournal/pub/1459"
+    },
+    {
+      "id": "nin-2024",
+      "title": "ICMR-NIN Dietary Guidelines for Indians 2024, Guideline 14",
+      "url": "https://www.nin.res.in/dietaryguidelines/pdfjs/locale/DGI_2024.pdf"
+    }
+  ],
+  "medical_note": "If a doctor has asked you to limit fluids, follow their advice and set that amount as your goal.",
+  "review": { "status": "pending", "reviewer": null, "date": null }
+}
