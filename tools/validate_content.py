@@ -1,8 +1,9 @@
 """Validate WaterBuddy content files.
 
 Hard errors (always fail): malformed JSON, missing required fields, id/file mismatch,
-messages over the word limit.
-Release checks (fail only with --strict): every postcard needs at least one source and an
+messages over the word limit, a postcard with no source, unknown art scenes, and route
+numbers that skip or repeat.
+Release checks (fail only with --strict): every postcard and the goal table need an
 approved review. Without --strict these are reported as warnings so work-in-progress
 content can live in the repo.
 
@@ -19,7 +20,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 MAX_MESSAGE_WORDS = 60
-REQUIRED = ("id", "route", "number", "place", "region", "message", "field_find", "alt", "sources", "review")
+REQUIRED = (
+    "id", "route", "number", "place", "region", "coordinates", "scene",
+    "message", "field_find", "alt", "sources", "review",
+)  # fmt: skip
+# Drawn placeholder scenes the app knows (apps/web/src/components/PostcardArt.tsx).
+SCENES = {"floating-islands", "clear-river", "river-island", "mangroves", "lagoon", "backwaters"}
+COORDINATES = re.compile(r"^\d{1,2}(\.\d)?°[NS] \d{1,3}(\.\d)?°[EW]$")
 
 
 @dataclass
@@ -49,10 +56,16 @@ def check_postcard(path: Path, data: object, report: Report, strict: bool, root:
     if not isinstance(find, dict) or not find.get("name") or not find.get("note"):
         report.errors.append(f"{name}: field_find needs a name and a note")
 
+    if data["scene"] not in SCENES:
+        report.errors.append(f"{name}: unknown scene '{data['scene']}'")
+    if not COORDINATES.match(str(data["coordinates"])):
+        report.errors.append(f"{name}: coordinates should look like '24.4°N 93.8°E'")
+
     release = report.errors if strict else report.warnings
     sources = data["sources"]
     if not isinstance(sources, list) or not sources:
-        release.append(f"{name}: no sources yet")
+        # Every fact needs a source (safety rule 13), so this fails even while drafting.
+        report.errors.append(f"{name}: no sources; every postcard needs at least one")
     else:
         for i, s in enumerate(sources):
             if (
@@ -186,6 +199,7 @@ def validate(root: Path, strict: bool = False) -> Report:
             check_goals(goals, json.loads(goals.read_text(encoding="utf-8")), report, strict)
         except json.JSONDecodeError as exc:
             report.errors.append(f"goals.json: invalid JSON ({exc.msg}, line {exc.lineno})")
+    routes: dict[str, list[int]] = {}
     for path in sorted((root / "postcards").rglob("*.json")):
         report.checked += 1
         try:
@@ -194,6 +208,11 @@ def validate(root: Path, strict: bool = False) -> Report:
             report.errors.append(f"{path.as_posix()}: invalid JSON ({exc.msg}, line {exc.lineno})")
             continue
         check_postcard(path, data, report, strict, root)
+        if isinstance(data, dict) and isinstance(data.get("number"), int):
+            routes.setdefault(str(data.get("route")), []).append(data["number"])
+    for route, numbers in sorted(routes.items()):
+        if sorted(numbers) != list(range(1, len(numbers) + 1)):
+            report.errors.append(f"{route}: postcard numbers must run 1, 2, 3… with no gaps or repeats")
     return report
 
 

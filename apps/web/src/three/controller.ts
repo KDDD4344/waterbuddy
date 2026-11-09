@@ -39,6 +39,7 @@ export class TidepoolController {
   private splash = new Particles(220, { color: 0xe2f8f3 });
   private bubbles = new Particles(180, { color: 0xe8fffb, ring: true });
   private latestFill: number;
+  private latestCorked = false;
   private camera: THREE.Camera | null = null;
   private tmp = new THREE.Vector3();
 
@@ -156,7 +157,31 @@ export class TidepoolController {
       pip.lookAt(null);
       this.pouring = false;
       pip.setFill(this.latestFill);
+      this.applyCork(false);
     });
+  }
+
+  /**
+   * The bottle is corked while today's goal is met. Changes wait until a pour has
+   * finished, so Pip never corks himself in mid-celebration.
+   */
+  syncCorked(corked: boolean, instant = false) {
+    this.latestCorked = corked;
+    if (instant) {
+      this.pip.setCorked(corked, true);
+      return;
+    }
+    if (!this.pouring) this.applyCork(false);
+  }
+
+  private applyCork(instant: boolean) {
+    const want = this.latestCorked;
+    if (want === this.pip.corked) return;
+    this.pip.setCorked(want, instant);
+    if (want) {
+      this.pip.trigger('click');
+      this.sound.tone(784, 0.12);
+    }
   }
 
   undo(toFill: number) {

@@ -125,3 +125,49 @@ test('"Not today" costs nothing', async ({ page }) => {
   await page.getByRole('button', { name: 'Journal' }).click();
   await expect(page.getByText('0 of 14 pressed in')).toBeVisible();
 });
+
+test('night voyage: the goal corks the bottle, night falls, and a postcard washes up next morning', async ({ page }, info) => {
+  test.setTimeout(90_000);
+  await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
+  await onboard(page);
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('Bottle full and corked');
+  await page.waitForTimeout(4500); // pour, cheer, then the cork
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: info.outputPath('voyage-corked.png') });
+
+  await page.clock.setFixedTime(new Date('2026-11-10T21:00:00'));
+  await page.reload();
+  await expect(page.locator('.stage')).toHaveAttribute('data-phase', 'night');
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: info.outputPath('voyage-night.png') });
+
+  await page.clock.setFixedTime(new Date('2026-11-11T07:30:00'));
+  await page.reload();
+  await expect(stat(page)).toContainText('0 millilitres of 2 litres');
+  // The bottle bobs on the water forever, so don't wait for it to hold still.
+  await page.getByRole('button', { name: 'A message washed up. Open it' }).click({ force: true });
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByRole('heading', { name: 'Postcard 1 of 6' })).toBeVisible();
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: info.outputPath('postcard-front.png') });
+  await sheet.getByRole('button', { name: 'Turn it over' }).click();
+  await expect(sheet.getByText(/The islands here float!/)).toBeVisible();
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: info.outputPath('postcard-back.png') });
+  await sheet.getByRole('button', { name: 'Done' }).click();
+
+  await page.getByRole('button', { name: 'Journal' }).click();
+  await expect(page.getByText(/1 of 6 · a card washes up/)).toBeVisible();
+  await page.getByText('Postcards · Route I').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: info.outputPath('album.png') });
+});
+
+test('after last call there is no countdown, only "We’ll sail tomorrow"', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-10T21:15:00'));
+  await onboard(page);
+  await expect(stat(page)).toContainText('We’ll sail tomorrow');
+  await expect(stat(page)).not.toContainText('glasses to go');
+});

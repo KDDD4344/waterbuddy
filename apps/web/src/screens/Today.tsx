@@ -13,6 +13,11 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Stage } from './Stage';
 import { CustomAmountSheet, EditLogSheet } from './LogSheets';
 import { FieldTaskEntry } from './FieldTask';
+import { MessageBottle, PostcardSheet } from './Postcard';
+import { useNow } from '../hooks/useNow';
+import { clockLabel, isAfterLastCall, lastCallTime, scenePhase, type Phase } from '../domain/voyage';
+
+const NIGHT: Record<Phase, number> = { day: 0, evening: 0.3, night: 1, morning: 0 };
 
 const STAMP_WORDS: Record<number, string> = { 25: 'Underway', 50: 'Halfway', 75: 'Nearly there', 100: 'Bottle full' };
 
@@ -26,6 +31,9 @@ export function Today({ profile }: { profile: Profile }) {
   const [stamp, setStamp] = useState<{ pct: number; key: number } | null>(null);
   const [guardDismissedAt, setGuardDismissedAt] = useState(0);
   const reducedMotion = useReducedMotion(profile.reduceMotion);
+  const now = useNow();
+  const waiting = useLiveQuery(() => db.postcards.filter((r) => !r.readAt).sortBy('day'), []);
+  const [postcard, setPostcard] = useState<string | null>(null);
 
   const list = logs ?? [];
   const total = list.reduce((s, l) => s + l.ml, 0);
@@ -70,15 +78,22 @@ export function Today({ profile }: { profile: Profile }) {
     });
   };
 
+  const lastCalled = isAfterLastCall(now, profile.bedtime);
+  const phase = scenePhase(now, { goalMet: p.reached, messageWaiting: (waiting?.length ?? 0) > 0, bedtime: profile.bedtime });
+  // After last call Pip stops counting down, so the app never nudges anyone to drink late (safety rule 3).
   const subline = p.reached
-    ? 'Goal reached for today. Anything more is still logged.'
-    : `of ${fmt(profile.goalMl)} · about ${p.glassesToGo} ${p.glassesToGo === 1 ? 'glass' : 'glasses'} to go`;
+    ? 'Bottle full and corked. Pip sets sail tonight.'
+    : lastCalled
+      ? `of ${fmt(profile.goalMl)} · last call was ${clockLabel(lastCallTime(profile.bedtime))}. We’ll sail tomorrow.`
+      : `of ${fmt(profile.goalMl)} · about ${p.glassesToGo} ${p.glassesToGo === 1 ? 'glass' : 'glasses'} to go`;
 
   return (
     <main className="screen today">
-      <div className="stage">
+      <div className="stage" data-phase={phase}>
         <Stage
           fill={p.fill}
+          corked={p.reached}
+          night={NIGHT[phase]}
           label={`Pip's bottle is ${p.percent} percent full.${p.reached ? ' It is full for today.' : ''}`}
           want3d={profile.scene3d !== false}
           reducedMotion={reducedMotion}
@@ -105,6 +120,7 @@ export function Today({ profile }: { profile: Profile }) {
             )}
           </section>
         </div>
+        {waiting && waiting.length > 0 && <MessageBottle count={waiting.length} onOpen={() => setPostcard(waiting[0]!.id)} />}
       </div>
       <div className="meter" role="progressbar" aria-label="Today's goal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={p.percent}>
         <div className="meter-fill" style={{ width: `${p.percent}%` }} />
@@ -160,6 +176,7 @@ export function Today({ profile }: { profile: Profile }) {
         )}
       </section>
 
+      <PostcardSheet id={postcard} onClose={() => setPostcard(null)} />
       <CustomAmountSheet open={customOpen} onClose={() => setCustomOpen(false)} onLog={(ml) => log(ml)} units={profile.units} cupMl={profile.cupMl} />
       <EditLogSheet
         log={editing}

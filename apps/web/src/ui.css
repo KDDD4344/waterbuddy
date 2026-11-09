@@ -1323,3 +1323,344 @@ textarea,
 [data-motion='reduce'] .slap {
   animation: none;
 }
+
+/* Night voyage and postcards (Phase 4) */
+.stage[data-phase='night'] {
+  background: linear-gradient(180deg, #24394d 0%, #12303d 45%, #071a22 100%);
+}
+
+.stage[data-phase='night'] .stage-top {
+  background: linear-gradient(rgba(6, 26, 33, 0.8), rgba(6, 26, 33, 0.45) 62%, rgba(6, 26, 33, 0));
+  color: var(--wb-paper);
+}
+
+.stage[data-phase='night'] .kicker {
+  color: var(--wb-mist);
+}
+
+.pib-cork {
+  animation: cork-in 0.6s var(--wb-ease-out) both;
+}
+
+@keyframes cork-in {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+}
+
+.message-bottle {
+  position: absolute;
+  left: var(--wb-space-4);
+  bottom: var(--wb-space-4);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-2);
+  min-height: 56px;
+  padding: 4px var(--wb-space-4) 4px 4px;
+  border: 0;
+  border-radius: 28px;
+  background: rgba(6, 26, 33, 0.72);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  animation: bob 3.2s ease-in-out infinite;
+}
+
+.message-bottle:focus-visible {
+  outline: 3px solid var(--wb-mist);
+  outline-offset: 3px;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+
+.postcard-unfold {
+  perspective: 1200px;
+  animation: card-unfold 0.9s var(--wb-ease-out) both;
+  transform-origin: top center;
+}
+
+@keyframes card-unfold {
+  0% {
+    opacity: 0;
+    transform: rotateX(-88deg) scale(0.7);
+  }
+  45% {
+    opacity: 1;
+  }
+  70% {
+    transform: rotateX(8deg) scale(1);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.postcard {
+  perspective: 1400px;
+}
+
+.postcard-inner {
+  display: grid;
+  transition: transform 0.7s var(--wb-ease-out);
+  transform-style: preserve-3d;
+}
+
+.postcard[data-side='back'] .postcard-inner {
+  transform: rotateY(180deg);
+}
+
+/* Safari can show a mirrored back face through the front, so the hidden face is also
+   switched off at the halfway point of the flip. */
+.postcard-face {
+  transition: visibility 0s linear 0.35s;
+}
+
+.postcard[data-side='front'] .postcard-back,
+.postcard[data-side='back'] .postcard-front {
+  visibility: hidden;
+}
+
+.postcard-inner {
+  position: relative;
+}
+
+.postcard-face {
+  grid-area: 1 / 1;
+  margin: 0;
+  min-width: 0;
+  border-radius: 8px;
+  background: #fbf7ec;
+  box-shadow:
+    0 1px 0 var(--wb-rule),
+    0 12px 28px rgba(19, 48, 58, 0.2);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+.postcard-front {
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-2);
+}
+
+.postcard-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  border-radius: 4px;
+}
+
+.postcard-front figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--wb-space-2);
+  padding: 0 4px;
+}
+
+.postcard-place {
+  font-family: var(--wb-font-display);
+  font-size: 22px;
+}
+
+.postcard-region {
+  font-family: var(--wb-font-mono);
+  font-weight: 600;
+  font-size: var(--wb-text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wb-rust);
+}
+
+.postcard-front .postcard-art {
+  aspect-ratio: 4 / 5;
+}
+
+/* The picture side sets the card's size; the message side scrolls if it needs more room. */
+.postcard-back {
+  transform: rotateY(180deg);
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: var(--wb-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-3);
+  background-image: repeating-linear-gradient(transparent 0 31px, rgba(19, 48, 58, 0.07) 31px 32px);
+}
+
+.postcard-stamp {
+  position: absolute;
+  top: var(--wb-space-3);
+  right: var(--wb-space-3);
+  width: 52px;
+  height: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--wb-rust);
+  outline: 4px solid #fbf7ec;
+  background: #f3e3bc;
+  color: var(--wb-rust);
+  transform: rotate(4deg);
+}
+
+.postcard-stamp span {
+  font-family: var(--wb-font-display);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.postcard-stamp small {
+  font-family: var(--wb-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.postcard-postmark {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border: 2px solid var(--wb-ink-muted);
+  border-radius: 999px;
+  font-family: var(--wb-font-mono);
+  font-weight: 600;
+  font-size: var(--wb-text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wb-ink-muted);
+  transform: rotate(-4deg);
+}
+
+.postcard-message {
+  padding-right: 60px;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.postcard-sign {
+  margin-top: calc(-1 * var(--wb-space-2));
+  text-align: right;
+  font-size: 20px;
+}
+
+.postcard-find {
+  padding: var(--wb-space-3);
+  border-radius: var(--wb-radius-s);
+  background: rgba(207, 231, 226, 0.6);
+}
+
+.postcard-sources summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: var(--wb-text-secondary);
+  cursor: pointer;
+}
+
+.postcard-sources ul {
+  margin: 0 0 var(--wb-space-2);
+  padding-left: 18px;
+  font-size: var(--wb-text-secondary);
+}
+
+.postcard-sources a {
+  color: var(--wb-deep);
+}
+
+.album {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--wb-space-2);
+}
+
+.album-card {
+  width: 100%;
+  padding: 5px 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: #fbf7ec;
+  box-shadow: 0 4px 10px rgba(19, 48, 58, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--wb-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.album li:nth-child(odd) .album-card {
+  transform: rotate(-2deg);
+}
+
+.album li:nth-child(even) .album-card {
+  transform: rotate(1.5deg);
+}
+
+.album-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  border-radius: 3px;
+}
+
+.album-place {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.album-empty {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--wb-rule);
+  border-radius: 6px;
+  font-family: var(--wb-font-mono);
+  font-size: 12px;
+  color: var(--wb-ink-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-bottle,
+  .postcard-unfold,
+  .pib-cork {
+    animation: none;
+  }
+  .postcard-inner,
+  .postcard-face {
+    transition: none;
+  }
+}
+
+[data-motion='reduce'] .message-bottle,
+[data-motion='reduce'] .postcard-unfold,
+[data-motion='reduce'] .pib-cork {
+  animation: none;
+}
+
+[data-motion='reduce'] .postcard-inner,
+[data-motion='reduce'] .postcard-face {
+  transition: none;
+}

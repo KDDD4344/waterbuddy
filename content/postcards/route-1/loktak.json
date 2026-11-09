@@ -4,20 +4,30 @@
   "number": 1,
   "place": "Loktak Lake",
   "region": "Manipur, India",
-  "coordinates": "24.5°N 93.8°E",
-  "message": "The islands here float! They're called phumdis: rings of plants and soil. One holds a whole national park, home of the sangai deer.",
+  "coordinates": "24.4°N 93.8°E",
+  "scene": "floating-islands",
+  "message": "The islands here float! People call them phumdis: thick mats of plants and soil drifting on the lake. The biggest patch is a national park, and a rare deer lives on it.",
   "field_find": {
     "name": "Sangai deer",
-    "note": "A deer found in the wild only on the floating park of Keibul Lamjao."
+    "note": "Manipur's brow-antlered deer, at home on the floating meadows of Keibul Lamjao National Park."
   },
   "art": null,
-  "alt": "Loktak Lake with rings of floating green islands and hills behind.",
+  "alt": "A wide lake dotted with rings of floating green islands, low hills behind.",
   "sources": [
     {
       "title": "Loktak Lake, Ramsar Sites Information Service",
       "url": "https://rsis.ramsar.org/ris/463",
-      "supports": "Floating phumdis; Keibul Lamjao National Park; sangai deer"
+      "supports": "Floating mats of weeds and soil called phumdis; coordinates"
+    },
+    {
+      "title": "Keibul Lamjao Conservation Area, UNESCO World Heritage Tentative List",
+      "url": "https://whc.unesco.org/en/tentativelists/6086/",
+      "supports": "Largest phumdi area is Keibul Lamjao National Park, home of the sangai (Manipur brow-antlered deer)"
     }
   ],
-  "review": { "status": "pending", "reviewer": null, "date": null }
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "date": null
+  }
 }

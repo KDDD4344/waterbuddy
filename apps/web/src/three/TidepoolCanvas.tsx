@@ -12,6 +12,10 @@ import { tidepoolBus } from './bus';
 
 export type TidepoolProps = {
   fill: number;
+  /** Today's goal is met: the bottle is corked. */
+  corked: boolean;
+  /** 0 = day, 1 = night. */
+  night: number;
   reducedMotion: boolean;
   soundOn: boolean;
   onReady?: () => void;
@@ -59,7 +63,7 @@ export default function TidepoolCanvas(props: TidepoolProps) {
   );
 }
 
-function Scene({ fill, reducedMotion, soundOn, onReady, quality, onSlow }: TidepoolProps & { quality: Quality; onSlow: () => void }) {
+function Scene({ fill, corked, night, reducedMotion, soundOn, onReady, quality, onSlow }: TidepoolProps & { quality: Quality; onSlow: () => void }) {
   const { camera, size } = useThree();
   const sound = useMemo(() => createSound(), []);
   const env = useMemo(() => buildTidepool(quality), [quality]);
@@ -82,6 +86,17 @@ function Scene({ fill, reducedMotion, soundOn, onReady, quality, onSlow }: Tidep
   useEffect(() => {
     ctrl.syncFill(fill);
   }, [ctrl, fill]);
+  // The first value is applied instantly; later changes animate.
+  const corkSeen = useRef(false);
+  useEffect(() => {
+    ctrl.syncCorked(corked, !corkSeen.current || reducedMotion);
+    corkSeen.current = true;
+  }, [ctrl, corked, reducedMotion]);
+  const nightSeen = useRef<typeof env | null>(null);
+  useEffect(() => {
+    env.setNight(night, nightSeen.current !== env || reducedMotion);
+    nightSeen.current = env;
+  }, [env, night, reducedMotion]);
   useEffect(
     () =>
       tidepoolBus.subscribe((e) => {

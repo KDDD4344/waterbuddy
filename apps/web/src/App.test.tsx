@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
-import { deleteEverything } from './data/repo';
+import { addLog, completeOnboarding, deleteEverything } from './data/repo';
 
 beforeEach(async () => {
   await deleteEverything();
@@ -119,5 +119,68 @@ describe('Phase 3 field tasks and journal', () => {
     await user.click(screen.getByRole('button', { name: 'Save line' }));
     expect(await screen.findByText('Line saved.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save line' })).toBeDisabled();
+  });
+});
+
+describe('Phase 4 night voyage and postcards', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function startedYesterday(drankMl: number) {
+    const y = new Date();
+    y.setDate(y.getDate() - 1);
+    y.setHours(9, 0, 0, 0);
+    await completeOnboarding(
+      { ageBand: '18-64', goalMl: 2000, goalSource: 'suggested', units: 'ml', cupMl: 240, parentConfirmed: false, vessels: [{ name: 'Tumbler', ml: 250 }] },
+      y
+    );
+    if (drankMl) await addLog(drankMl, null, new Date(y.getTime() + 60 * 60 * 1000));
+  }
+
+  it('a goal day brings a message in a bottle the next morning, which opens a postcard', async () => {
+    await startedYesterday(2000);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole('button', { name: 'A message washed up. Open it' }));
+    const sheet = await screen.findByRole('dialog');
+    expect(within(sheet).getByRole('heading', { name: 'Postcard 1 of 6' })).toBeInTheDocument();
+    expect(within(sheet).getByText('Loktak Lake')).toBeInTheDocument();
+    await user.click(within(sheet).getByRole('button', { name: 'Turn it over' }));
+    expect(within(sheet).getByText(/The islands here float!/)).toBeInTheDocument();
+    expect(within(sheet).getByRole('link', { name: /Ramsar Sites Information Service/ })).toHaveAttribute('href', 'https://rsis.ramsar.org/ris/463');
+    await user.click(within(sheet).getByRole('button', { name: 'Done' }));
+    expect(screen.queryByRole('button', { name: /message washed up/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Journal' }));
+    expect(await screen.findByText(/1 of 6 · a card washes up/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Loktak Lake' })).toBeInTheDocument();
+  });
+
+  it('a day under the goal brings no bottle and no mention', async () => {
+    await startedYesterday(1500);
+    render(<App />);
+    expect(await screen.findByLabelText("Today's progress")).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /message washed up/ })).not.toBeInTheDocument();
+  });
+
+  it('after last call Pip stops counting glasses: "We’ll sail tomorrow"', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    const late = new Date();
+    late.setHours(21, 30, 0, 0);
+    vi.setSystemTime(late);
+    await startedYesterday(0);
+    render(<App />);
+    const stat = await screen.findByLabelText("Today's progress");
+    expect(await within(stat).findByText(/last call was 8:30 pm\. We’ll sail tomorrow\./i)).toBeInTheDocument();
+    expect(within(stat).queryByText(/glasses to go/)).not.toBeInTheDocument();
+  });
+
+  it('reaching the goal corks the bottle', async () => {
+    await startedYesterday(0);
+    await addLog(2000);
+    render(<App />);
+    const stat = await screen.findByLabelText("Today's progress");
+    expect(await within(stat).findByText(/Bottle full and corked/)).toBeInTheDocument();
   });
 });

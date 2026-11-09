@@ -23,6 +23,9 @@ export interface PipRig {
   setExpression(e: Expression): void;
   trigger(a: Action, seconds?: number): void;
   setHidden(hidden: boolean): void;
+  /** Push the cork into the neck (goal reached) or pull it out. */
+  setCorked(corked: boolean, instant?: boolean): void;
+  readonly corked: boolean;
   lookAt(worldPoint: THREE.Vector3 | null): void;
   /** Slosh the liquid. */
   impulse(x?: number, z?: number): void;
@@ -76,6 +79,18 @@ export function buildPip({ fill = 0.45 }: { fill?: number } = {}): PipRig {
   const liquid = new THREE.Mesh(liquidGeo, front.material);
   liquid.renderOrder = 3;
   bottle.add(glassBack, liquidBack, liquid, glassFront);
+
+  // cork: sits in the neck once the day's goal is met
+  const cork = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.29, 0.25, 0.36, 24),
+    new THREE.MeshStandardMaterial({ color: 0xb5835a, roughness: 0.92 })
+  );
+  cork.renderOrder = 3;
+  cork.visible = false;
+  bottle.add(cork);
+  const CORK_IN = 1.5; // pokes just out of the lip so it reads as a cork
+  let corkOn = false;
+  let corkT = 0;
 
   const rz = bottle.rotation.z;
   const dir = new THREE.Vector3(-Math.sin(rz), Math.cos(rz), 0);
@@ -281,6 +296,13 @@ export function buildPip({ fill = 0.45 }: { fill?: number } = {}): PipRig {
     setHidden(h) {
       hiddenForced = h;
     },
+    get corked() {
+      return corkOn;
+    },
+    setCorked(on, instant = false) {
+      corkOn = on;
+      if (instant) corkT = on ? 1 : 0;
+    },
     lookAt(p) {
       look = p ? p.clone() : null;
     },
@@ -326,6 +348,13 @@ export function buildPip({ fill = 0.45 }: { fill?: number } = {}): PipRig {
         return p < 1;
       });
       hideAmt = damp(hideAmt, hide, 14, dt);
+
+      // cork slides down into the neck with a little overshoot
+      corkT = damp(corkT, corkOn ? 1 : 0, 6, dt);
+      cork.visible = corkT > 0.02;
+      const over = corkOn ? Math.sin(Math.min(1, corkT) * Math.PI) * 0.06 : 0;
+      cork.position.y = CORK_IN + (1 - corkT) * 0.6 - over;
+      cork.scale.setScalar(0.6 + 0.4 * corkT);
 
       // body
       const breathe = Math.sin(t * (W.sleepy > 0.5 ? 1.2 : 2.2)) * 0.025;

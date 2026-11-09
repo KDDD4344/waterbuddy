@@ -91,4 +91,16 @@ describe('TidepoolController', () => {
     c.celebrate();
     expect(trigger).toHaveBeenCalledWith('nod');
   });
+
+  it('corks the bottle once a goal-reaching pour has finished, not during it', () => {
+    const c = new TidepoolController({ fill: 0.9 });
+    c.pour({ ml: 250, fromFill: 0.9, toFill: 1, milestone: 100, overGoal: false });
+    c.syncCorked(true);
+    expect(c.pip.corked).toBe(false);
+    run(c, 5);
+    expect(c.pouring).toBe(false);
+    expect(c.pip.corked).toBe(true);
+    c.syncCorked(false); // an undo below the goal pulls the cork straight away
+    expect(c.pip.corked).toBe(false);
+  });
 });

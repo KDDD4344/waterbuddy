@@ -75,6 +75,17 @@ export interface Note {
   at: string;
 }
 
+/** A postcard that washed up after a night voyage. Never taken back. */
+export interface PostcardRecord {
+  /** The card's id from content/postcards. */
+  id: string;
+  /** The goal day whose voyage brought it. */
+  day: DayKey;
+  deliveredAt: string;
+  /** Null until the message in the bottle is opened. */
+  readAt: string | null;
+}
+
 export class WaterBuddyDB extends Dexie {
   profile!: Table<Profile, 'me'>;
   vessels!: Table<Vessel, string>;
@@ -82,6 +93,7 @@ export class WaterBuddyDB extends Dexie {
   goals!: Table<GoalChange, string>;
   tasks!: Table<TaskRecord, string>;
   notes!: Table<Note, string>;
+  postcards!: Table<PostcardRecord, string>;
 
   constructor(name = 'waterbuddy') {
     super(name);
@@ -95,6 +107,10 @@ export class WaterBuddyDB extends Dexie {
     this.version(2).stores({
       tasks: 'id, day',
       notes: 'day'
+    });
+    // Phase 4: postcards from the night voyage.
+    this.version(3).stores({
+      postcards: 'id, day'
     });
   }
 }

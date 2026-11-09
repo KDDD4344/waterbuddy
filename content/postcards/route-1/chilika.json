@@ -1,0 +1,33 @@
+{
+  "id": "chilika",
+  "route": "route-1",
+  "number": 5,
+  "place": "Chilika Lake",
+  "region": "Odisha, India",
+  "coordinates": "19.7°N 85.4°E",
+  "scene": "lagoon",
+  "message": "A long sandy ridge keeps this lake apart from the sea, but seawater still slips in, so it's part salty, part fresh. Waterbirds of 33 kinds stop here to breed, rest or spend the winter.",
+  "field_find": {
+    "name": "Irrawaddy dolphin",
+    "note": "Shy dolphins. Near Satapada you might glimpse a head or a tail as one surfaces."
+  },
+  "art": null,
+  "alt": "A calm lagoon with a sandbar on the horizon and a dolphin's fin breaking the water.",
+  "sources": [
+    {
+      "title": "Chilika Lake, Ramsar Sites Information Service",
+      "url": "https://rsis.ramsar.org/ris/229",
+      "supports": "Brackish lake separated from the Bay of Bengal by a sandy ridge with sea water exchange; 33 waterbird species breed, winter or stage; coordinates"
+    },
+    {
+      "title": "Satapada, Chilika Development Authority (Government of Odisha)",
+      "url": "https://www.chilika.com/satapada.php",
+      "supports": "Irrawaddy dolphins at Satapada; shy, usually only the head or tail is seen"
+    }
+  ],
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "date": null
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Profile } from './data/db';
 import { ToastProvider } from './ui/toast';
@@ -6,6 +6,8 @@ import { Onboarding } from './screens/Onboarding';
 import { Today } from './screens/Today';
 import { Journal } from './screens/Journal';
 import { useReducedMotion } from './hooks/useReducedMotion';
+import { useToday } from './hooks/useToday';
+import { deliverPostcards } from './data/repo';
 import { You } from './screens/You';
 import './ui.css';
 
@@ -28,6 +30,11 @@ function Splash() {
 function Main({ profile }: { profile: Profile }) {
   const [tab, setTab] = useState<Tab>('today');
   const reduced = useReducedMotion(profile.reduceMotion);
+  const today = useToday();
+  // Voyages that sailed overnight wash up as postcards when a new day starts.
+  useEffect(() => {
+    void deliverPostcards();
+  }, [today]);
   return (
     <div className="app" data-motion={reduced ? 'reduce' : 'full'}>
       {tab === 'today' && <Today profile={profile} />}

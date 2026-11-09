@@ -9,6 +9,8 @@ GOOD = {
     "number": 1,
     "place": "A Place",
     "region": "Somewhere",
+    "coordinates": "12.3°N 45.6°E",
+    "scene": "lagoon",
     "message": "A short true message.",
     "field_find": {"name": "Thing", "note": "A note."},
     "alt": "A picture of a place.",
@@ -31,11 +33,32 @@ def test_good_card_passes_strict(tmp_path: Path) -> None:
     assert report.errors == [] and report.warnings == [] and report.checked == 1
 
 
-def test_unsourced_card_warns_but_fails_strict(tmp_path: Path) -> None:
-    write(tmp_path, "place", {**GOOD, "sources": [], "review": {"status": "pending"}})
+def test_unsourced_card_is_always_rejected(tmp_path: Path) -> None:
+    write(tmp_path, "place", {**GOOD, "sources": []})
+    assert any("no sources" in e for e in validate(tmp_path).errors)
+
+
+def test_unreviewed_card_warns_but_fails_strict(tmp_path: Path) -> None:
+    write(tmp_path, "place", {**GOOD, "review": {"status": "pending"}})
     assert validate(tmp_path).errors == []
-    assert len(validate(tmp_path).warnings) == 2
-    assert len(validate(tmp_path, strict=True).errors) == 2
+    assert len(validate(tmp_path).warnings) == 1
+    assert len(validate(tmp_path, strict=True).errors) == 1
+
+
+def test_unknown_scene_is_an_error(tmp_path: Path) -> None:
+    write(tmp_path, "place", {**GOOD, "scene": "volcano"})
+    assert any("unknown scene" in e for e in validate(tmp_path).errors)
+
+
+def test_route_numbers_must_not_skip(tmp_path: Path) -> None:
+    write(tmp_path, "place", GOOD)
+    write(tmp_path, "other", {**GOOD, "id": "other", "number": 3})
+    assert any("no gaps" in e for e in validate(tmp_path).errors)
+
+
+def test_coordinates_format(tmp_path: Path) -> None:
+    write(tmp_path, "place", {**GOOD, "coordinates": "north-ish"})
+    assert any("coordinates" in e for e in validate(tmp_path).errors)
 
 
 def test_long_message_is_an_error(tmp_path: Path) -> None:

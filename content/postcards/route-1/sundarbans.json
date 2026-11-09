@@ -1,0 +1,28 @@
+{
+  "id": "sundarbans",
+  "route": "route-1",
+  "number": 4,
+  "place": "Sundarbans",
+  "region": "West Bengal, India",
+  "coordinates": "21.9°N 88.9°E",
+  "scene": "mangroves",
+  "message": "These forests grow right where the rivers meet the tides. It's the largest mangrove forest in the world, and the tigers here are strong swimmers who even eat fish and crabs.",
+  "field_find": {
+    "name": "Horseshoe crabs",
+    "note": "Two of the world's four kinds of horseshoe crab live in these waters."
+  },
+  "art": null,
+  "alt": "Mangrove trees standing on stilt-like roots above a tidal creek at dusk.",
+  "sources": [
+    {
+      "title": "Sundarbans National Park, UNESCO World Heritage List",
+      "url": "https://whc.unesco.org/en/list/452/",
+      "supports": "World's largest area of mangrove forest; tigers swim long distances and feed on fish and crabs; two of four horseshoe crab species; coordinates"
+    }
+  ],
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "date": null
+  }
+}

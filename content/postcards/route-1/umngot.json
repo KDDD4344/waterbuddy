@@ -5,13 +5,29 @@
   "place": "Umngot River",
   "region": "Meghalaya, India",
   "coordinates": "25.2°N 92.0°E",
-  "message": "The water here is so clear the boats seem to float in the air. I could see every pebble on the riverbed.",
+  "scene": "clear-river",
+  "message": "The water here is so clear the canoes look like they're floating on air. You can see down about 30 feet! This river runs between the Khasi and Jaintia Hills.",
   "field_find": {
     "name": "Living root bridges",
-    "note": "Bridges grown from the roots of fig trees, near Riwai village."
+    "note": "Khasi communities grow bridges from the roots of fig trees. Kudengrim, a forest walk from the river, has some."
   },
   "art": null,
-  "alt": "A small boat over water so clear that its shadow falls on the pebbles below.",
-  "sources": [],
-  "review": { "status": "pending", "reviewer": null, "date": null }
+  "alt": "A wooden canoe over water so clear that its shadow falls on the pebbles below.",
+  "sources": [
+    {
+      "title": "Umngot, Meghalaya Tourism (Government of Meghalaya)",
+      "url": "https://www.meghalayatourism.in/experiences/adventure-&-outdoor/water-based-adventures/umngot/",
+      "supports": "Clear water with visibility up to 30 feet; canoe rides; valley between the Khasi and Jaintia Hills; Kudengrim's living root bridges nearby"
+    },
+    {
+      "title": "Jingkieng jri: Living Root Bridge Cultural Landscapes, UNESCO World Heritage Tentative List",
+      "url": "https://whc.unesco.org/en/tentativelists/6606/",
+      "supports": "Root bridges are Ficus-based and grown by Khasi communities; Kudengrim's coordinates (25°13'N 92°1'E)"
+    }
+  ],
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "date": null
+  }
 }

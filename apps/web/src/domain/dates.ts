@@ -46,3 +46,9 @@ export function dayLabel(key: DayKey, today: DayKey): string {
 export function timeLabel(iso: string): string {
   return new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
 }
+
+/** Short weekday name for a day key: "Mon", "Tue"… */
+export function weekdayShort(key: DayKey): string {
+  const [y, m, d] = key.split('-').map(Number) as [number, number, number];
+  return new Intl.DateTimeFormat('en-IN', { weekday: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d)));
+}

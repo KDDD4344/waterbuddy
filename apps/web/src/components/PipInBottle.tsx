@@ -1,9 +1,9 @@
 // Static 2D Pip for the Phase 0 shell and the no-3D fallback.
 // Phase 2 replaces this on capable devices with the real-time 3D tidepool.
 
-type Props = { className?: string; fill?: number; label?: string; transparent?: boolean };
+type Props = { className?: string; fill?: number; label?: string; transparent?: boolean; corked?: boolean };
 
-export function PipInBottle({ className, fill = 0.62, label, transparent = false }: Props) {
+export function PipInBottle({ className, fill = 0.62, label, transparent = false, corked = false }: Props) {
   // The water is drawn full and slid down, so the level can animate with a CSS transform.
   const drop = (1 - Math.max(0, Math.min(1, fill))) * 92;
   return (
@@ -33,6 +33,7 @@ export function PipInBottle({ className, fill = 0.62, label, transparent = false
         strokeWidth="2.5"
       />
       <path d="M96 62 H200" stroke="#FFFFFF" strokeOpacity="0.55" strokeWidth="4" strokeLinecap="round" />
+      {corked && <rect className="pib-cork" x="258" y="80" width="24" height="40" rx="4" fill="#B5835A" stroke="#7A4A2E" strokeWidth="2" />}
       <g transform="translate(300 94)">
         <line x1="-8" y1="-18" x2="-14" y2="-40" stroke="#E9784F" strokeWidth="5" strokeLinecap="round" />
         <line x1="8" y1="-18" x2="12" y2="-42" stroke="#E9784F" strokeWidth="5" strokeLinecap="round" />

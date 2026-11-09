@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Profile } from '../data/db';
 import { goalOn, NOTE_MAX, saveNote, totalsForDays } from '../data/repo';
-import { dayKey, dayLabel, lastNDays, type DayKey } from '../domain/dates';
+import { dayKey, dayLabel, lastNDays, weekdayShort, type DayKey } from '../domain/dates';
 import { progress } from '../domain/progress';
 import { answerSummary, FIELD_TASKS } from '../domain/tasks';
 import { formatAmount } from '../domain/units';
@@ -11,6 +11,7 @@ import { useToast } from '../ui/toast';
 import { Sticker, stickerName } from '../components/Sticker';
 import { FieldTaskEntry } from './FieldTask';
 import { History } from './History';
+import { PostcardAlbum } from './Postcard';
 
 /**
  * The field journal: the week's tide marks, today's field task, stickers earned, a line a
@@ -28,9 +29,13 @@ export function Journal({ profile }: { profile: Profile }) {
         <h2 id="task-h">Today&rsquo;s field task</h2>
         <FieldTaskEntry variant="card" />
       </section>
+      <section className="fold" style={{ '--i': 3 } as React.CSSProperties} aria-labelledby="cards-h">
+        <h2 id="cards-h">Postcards · Route I</h2>
+        <PostcardAlbum />
+      </section>
       <Stickers />
       <Notes />
-      <section className="fold" style={{ '--i': 5 } as React.CSSProperties}>
+      <section className="fold" style={{ '--i': 6 } as React.CSSProperties}>
         <History profile={profile} embedded />
       </section>
     </main>
@@ -64,7 +69,7 @@ function TideMarks({ profile }: { profile: Profile }) {
                 <span className="tide-water" style={{ height: `${p.percent}%` }} />
               </span>
               <span className="tide-day" aria-hidden="true">
-                {d === today ? 'Today' : label.slice(0, 3)}
+                {d === today ? 'Today' : weekdayShort(d)}
               </span>
               <span className="sr-only">
                 {label}: {fmt(total)} of {fmt(goal)}
@@ -85,7 +90,7 @@ function Stickers() {
   const earned = FIELD_TASKS.filter((t) => done.has(t.id));
 
   return (
-    <section className="fold" style={{ '--i': 3 } as React.CSSProperties} aria-labelledby="stickers-h">
+    <section className="fold" style={{ '--i': 4 } as React.CSSProperties} aria-labelledby="stickers-h">
       <h2 id="stickers-h">Stickers</h2>
       <p className="small muted">
         {earned.length} of {FIELD_TASKS.length} pressed in
@@ -137,7 +142,7 @@ function Notes() {
 
   const past = (notes ?? []).filter((n) => n.day !== today);
   return (
-    <section className="fold" style={{ '--i': 4 } as React.CSSProperties} aria-labelledby="notes-h">
+    <section className="fold" style={{ '--i': 5 } as React.CSSProperties} aria-labelledby="notes-h">
       <h2 id="notes-h">A line a day</h2>
       <form
         className="field"

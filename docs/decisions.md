@@ -28,3 +28,9 @@ Each decision records what we chose, why, and what would make us revisit it. Add
 ## D-006 · Hosting to start: Vercel (web) and Render (API), free tiers (9 Nov 2026)
 **Why:** both deploy from GitHub on every push and have free tiers that suit a pilot.
 **Revisit when:** reminders need guaranteed uptime (Render's free tier sleeps when idle).
+
+## D-007 · Night voyage rules (10 Nov 2026)
+**Chose:** a day whose goal is met earns one voyage. The postcard washes up the next morning, in route order, and is never taken back, even if a log is later deleted. Over-goal drinking earns nothing more. After last call (two hours before bedtime, 22:30 if unset) Today stops counting glasses to go and says "We'll sail tomorrow".
+**Why:** safety rules 1, 3 and 9: no reward for drinking more, no late-night nudges, nothing to lose.
+**Content:** Route I is six Indian wetlands and rivers with official sources (Ramsar, UNESCO, state tourism and lake authorities). Postcard art is drawn placeholders until Phase 7.
+**Revisit when:** a health reviewer confirms the last-call window, or testers want cards on a different schedule.

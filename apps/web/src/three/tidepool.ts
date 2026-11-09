@@ -12,6 +12,8 @@ export interface Tidepool {
   group: THREE.Group;
   /** Where the contact shadow sits (Pip's bottle). */
   setShadow(x: number, z: number): void;
+  /** 0 = day, 1 = night. Eases there over a couple of seconds. */
+  setNight(n: number, instant?: boolean): void;
   update(dt: number, t: number, camera: THREE.Camera): void;
   dispose(): void;
 }
@@ -19,6 +21,8 @@ export interface Tidepool {
 export function buildTidepool(quality: Quality = 'high'): Tidepool {
   const group = new THREE.Group();
   const uTime = { value: 0 };
+  const uNight = { value: 0 };
+  let nightTarget = 0;
   const hiQ = quality === 'high';
 
   const bg = new THREE.Mesh(
@@ -26,14 +30,16 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
     new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
-      uniforms: { uTime },
+      uniforms: { uTime, uNight },
       vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: `uniform float uTime; varying vec3 vP;
+      fragmentShader: `uniform float uTime, uNight; varying vec3 vP;
         void main(){ float h = vP.y;
-          vec3 deep = vec3(0.05, 0.24, 0.29), mid = vec3(0.19, 0.50, 0.53), top = vec3(0.70, 0.89, 0.86);
+          vec3 deep = mix(vec3(0.05, 0.24, 0.29), vec3(0.01, 0.05, 0.09), uNight);
+          vec3 mid = mix(vec3(0.19, 0.50, 0.53), vec3(0.03, 0.13, 0.20), uNight);
+          vec3 top = mix(vec3(0.70, 0.89, 0.86), vec3(0.10, 0.18, 0.29), uNight);
           vec3 c = mix(deep, mid, smoothstep(-0.45, 0.12, h)); c = mix(c, top, smoothstep(0.12, 0.78, h));
           float g = pow(max(dot(vP, normalize(vec3(0.25, 1.0, -0.35))), 0.0), 16.0);
-          c += g * vec3(1.0, 0.93, 0.78) * 0.55;
+          c += g * mix(vec3(1.0, 0.93, 0.78) * 0.55, vec3(0.75, 0.85, 1.0) * 0.45, uNight);
           float sh = smoothstep(0.5, 0.92, h) * (0.5 + 0.5 * sin(vP.x * 38.0 + uTime * 1.1) * sin(vP.z * 33.0 - uTime * 0.8));
           c += sh * 0.1;
           gl_FragColor = vec4(c, 1.0); ${OUTPUT} }`
@@ -45,9 +51,9 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
   const sand = new THREE.Mesh(
     new THREE.PlaneGeometry(60, 60),
     new THREE.ShaderMaterial({
-      uniforms: { uTime, uShadow: shadow },
+      uniforms: { uTime, uShadow: shadow, uNight },
       vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
-      fragmentShader: `uniform float uTime; uniform vec3 uShadow; varying vec3 vW;
+      fragmentShader: `uniform float uTime, uNight; uniform vec3 uShadow; varying vec3 vW;
         float caustic(vec2 p, float t){ vec2 i = p; float c = 1.0; float inten = 0.005;
           for (int n = 0; n < 4; n++) { float tt = t * (1.0 - (3.5 / float(n + 1)));
             i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x));
@@ -61,7 +67,8 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
           s *= 0.92 + 0.08 * sin(vW.x * 2.6 + sin(vW.z * 1.4) * 1.6);
           vec3 col = s * (0.6 + 0.95 * c) * vec3(0.78, 0.92, 0.94);
           float d = length(vW.xz - uShadow.xy); col *= 1.0 - 0.42 * exp(-d * d / uShadow.z);
-          col = mix(col, vec3(0.24, 0.55, 0.57), smoothstep(6.0, 24.0, length(vW - cameraPosition)));
+          col *= mix(vec3(1.0), vec3(0.24, 0.32, 0.46), uNight);
+          col = mix(col, mix(vec3(0.24, 0.55, 0.57), vec3(0.03, 0.12, 0.18), uNight), smoothstep(6.0, 24.0, length(vW - cameraPosition)));
           gl_FragColor = vec4(col, 1.0); ${OUTPUT} }`
     })
   );
@@ -74,6 +81,8 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
   const rim = new THREE.DirectionalLight(0x8fe0d6, 1.3);
   rim.position.set(-4, 3, -5);
   group.add(hemi, key, rim);
+  const dayKey = key.color.clone();
+  const moon = new THREE.Color(0x9fb8e8);
 
   const rockMats = [
     new THREE.MeshStandardMaterial({ color: 0x5f7f80, roughness: 0.95, flatShading: true }),
@@ -146,11 +155,11 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide,
-      uniforms: { uTime, uSeed: { value: i } },
+      uniforms: { uTime, uNight, uSeed: { value: i } },
       vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: `uniform float uTime, uSeed; varying vec2 vUv;
+      fragmentShader: `uniform float uTime, uSeed, uNight; varying vec2 vUv;
         void main(){ float edge = smoothstep(0.0, 0.5, vUv.x) * smoothstep(1.0, 0.5, vUv.x);
-          float a = edge * smoothstep(0.0, 1.0, vUv.y) * (0.6 + 0.4 * sin(uTime * 0.7 + uSeed * 4.0)) * 0.16;
+          float a = edge * smoothstep(0.0, 1.0, vUv.y) * (0.6 + 0.4 * sin(uTime * 0.7 + uSeed * 4.0)) * 0.16 * (1.0 - 0.8 * uNight);
           gl_FragColor = vec4(vec3(1.0, 0.98, 0.9) * a, a); }`
     });
     const ray = new THREE.Mesh(new THREE.PlaneGeometry(0.9 + Math.random() * 0.8, 14).translate(0, -7, 0), mat);
@@ -179,11 +188,11 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
     new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
-      uniforms: { uTime },
-      vertexShader: `uniform float uTime; attribute float aSeed; varying float vA;
+      uniforms: { uTime, uNight },
+      vertexShader: `uniform float uTime, uNight; attribute float aSeed; varying float vA;
         void main(){ vec3 p = position; p.y = mod(p.y + uTime * (0.08 + aSeed * 0.12), 7.0) - 0.3; p.x += sin(uTime * 0.5 + aSeed * 20.0) * 0.25;
-          vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_PointSize = (1.5 + aSeed * 2.5) * 40.0 / -mv.z; vA = 0.25 + aSeed * 0.35; gl_Position = projectionMatrix * mv; }`,
-      fragmentShader: `varying float vA; void main(){ float r = length(gl_PointCoord - 0.5); if (r > 0.5) discard; gl_FragColor = vec4(vec3(0.95, 1.0, 0.95), vA * (1.0 - r * 2.0)); }`
+          vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_PointSize = (1.5 + aSeed * 2.5) * 40.0 / -mv.z; vA = (0.25 + aSeed * 0.35) * (1.0 + uNight * aSeed * 1.4); gl_Position = projectionMatrix * mv; }`,
+      fragmentShader: `uniform float uNight; varying float vA; void main(){ float r = length(gl_PointCoord - 0.5); if (r > 0.5) discard; gl_FragColor = vec4(mix(vec3(0.95, 1.0, 0.95), vec3(0.55, 1.0, 0.88), uNight), vA * (1.0 - r * 2.0)); }`
     })
   );
   motes.frustumCulled = false;
@@ -213,8 +222,18 @@ export function buildTidepool(quality: Quality = 'high'): Tidepool {
       shadow.value.x = x;
       shadow.value.y = z;
     },
-    update(_dt, t, camera) {
+    setNight(n, instant = false) {
+      nightTarget = n;
+      if (instant) uNight.value = n;
+    },
+    update(dt, t, camera) {
       uTime.value = t;
+      uNight.value += (nightTarget - uNight.value) * (1 - Math.exp(-1.6 * dt));
+      const nt = uNight.value;
+      hemi.intensity = 1.2 - 0.75 * nt;
+      key.intensity = 2.0 - 1.35 * nt;
+      key.color.copy(dayKey).lerp(moon, nt);
+      rim.intensity = 1.3 - 0.4 * nt;
       for (const r of rays) r.rotation.y = Math.atan2(camera.position.x - r.position.x, camera.position.z - r.position.z);
       for (const f of fishes) {
         const a = t * 0.22 + f.off;

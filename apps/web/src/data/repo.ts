@@ -1,4 +1,5 @@
-import { db, newId, type DrinkLog, type GoalChange, type Note, type Profile, type TaskRecord, type Vessel } from './db';
+import { db, newId, type DrinkLog, type GoalChange, type Note, type PostcardRecord, type Profile, type TaskRecord, type Vessel } from './db';
+import { cardsToDeliver } from '../domain/voyage';
 import { dayKey, deviceTimeZone, type DayKey } from '../domain/dates';
 import { MAX_SINGLE_LOG_ML } from '../domain/guards';
 import type { TaskAnswer } from '../domain/tasks';
@@ -150,9 +151,40 @@ export async function saveNote(day: DayKey, text: string, now = new Date()): Pro
 
 export const NOTE_MAX = 280;
 
+// --- Night voyage and postcards (Phase 4) ---
+
+/** Days since the person started on which the goal of that day was met. */
+async function goalMetDays(): Promise<DayKey[]> {
+  const profile = await db.profile.get('me');
+  if (!profile) return [];
+  const [logs, goals] = await Promise.all([db.logs.toArray(), db.goals.toArray()]);
+  const totals = new Map<DayKey, number>();
+  for (const l of logs) if (!l.deletedAt) totals.set(l.day, (totals.get(l.day) ?? 0) + l.ml);
+  return [...totals].filter(([day, total]) => total >= goalOn(day, goals, profile.goalMl)).map(([day]) => day);
+}
+
+/**
+ * Bring in any postcards from voyages that have sailed: one per goal day before today.
+ * Safe to call as often as we like; a day never earns two cards.
+ */
+export async function deliverPostcards(now = new Date()): Promise<PostcardRecord[]> {
+  return db.transaction('rw', [db.profile, db.logs, db.goals, db.postcards], async () => {
+    const [days, delivered] = await Promise.all([goalMetDays(), db.postcards.toArray()]);
+    const fresh = cardsToDeliver(days, delivered, dayKey(now)).map(
+      ({ day, card }): PostcardRecord => ({ id: card.id, day, deliveredAt: now.toISOString(), readAt: null })
+    );
+    if (fresh.length) await db.postcards.bulkAdd(fresh);
+    return fresh;
+  });
+}
+
+export async function markPostcardRead(id: string, now = new Date()): Promise<void> {
+  await db.postcards.update(id, { readAt: now.toISOString() });
+}
+
 export interface ExportFile {
   app: 'WaterBuddy';
-  format: 2;
+  format: 3;
   exportedAt: string;
   profile: Profile | undefined;
   vessels: Vessel[];
@@ -160,33 +192,36 @@ export interface ExportFile {
   logs: DrinkLog[];
   tasks: TaskRecord[];
   notes: Note[];
+  postcards: PostcardRecord[];
 }
 
 export async function exportAll(now = new Date()): Promise<ExportFile> {
-  const [profile, vessels, goals, logs, tasks, notes] = await Promise.all([
+  const [profile, vessels, goals, logs, tasks, notes, postcards] = await Promise.all([
     db.profile.get('me'),
     db.vessels.orderBy('order').toArray(),
     db.goals.toArray(),
     db.logs.toArray(),
     db.tasks.toArray(),
-    db.notes.toArray()
+    db.notes.toArray(),
+    db.postcards.toArray()
   ]);
   return {
     app: 'WaterBuddy',
-    format: 2,
+    format: 3,
     exportedAt: now.toISOString(),
     profile,
     vessels,
     goals,
     logs: logs.filter((l) => !l.deletedAt),
     tasks,
-    notes
+    notes,
+    postcards
   };
 }
 
 /** Permanently removes everything stored on this device. */
 export async function deleteEverything(): Promise<void> {
-  await db.transaction('rw', [db.profile, db.vessels, db.logs, db.goals, db.tasks, db.notes], async () => {
-    await Promise.all([db.profile.clear(), db.vessels.clear(), db.logs.clear(), db.goals.clear(), db.tasks.clear(), db.notes.clear()]);
+  await db.transaction('rw', [db.profile, db.vessels, db.logs, db.goals, db.tasks, db.notes, db.postcards], async () => {
+    await Promise.all([db.profile.clear(), db.vessels.clear(), db.logs.clear(), db.goals.clear(), db.tasks.clear(), db.notes.clear(), db.postcards.clear()]);
   });
 }

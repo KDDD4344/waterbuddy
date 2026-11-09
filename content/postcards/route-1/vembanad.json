@@ -1,0 +1,34 @@
+{
+  "id": "vembanad",
+  "route": "route-1",
+  "number": 6,
+  "place": "Vembanad Lake",
+  "region": "Kerala, India",
+  "coordinates": "9.8°N 76.8°E",
+  "scene": "backwaters",
+  "message": "Ten rivers flow into this huge wetland! Close by, in Kuttanad, farmers grow rice below sea level, behind walls of clay, coir and bamboo that keep the salty water out.",
+  "field_find": {
+    "name": "Kuttanad's rice fields",
+    "note": "Fields reclaimed from the lake by hand, named a Globally Important Agricultural Heritage System in 2013."
+  },
+  "art": null,
+  "alt": "Bright green rice fields below the waterline, a canal and coconut palms along a clay bank.",
+  "sources": [
+    {
+      "title": "Vembanad-Kol Wetland, Ramsar Sites Information Service",
+      "url": "https://rsis.ramsar.org/ris/1214",
+      "supports": "Largest brackish wetland on India's southwest coast, fed by 10 rivers; coordinates"
+    },
+    {
+      "title": "FAO Heritage Status to Kuttanad, Kerala Tourism (Government of Kerala)",
+      "url": "https://www.keralatourism.org/kerala-article/2013/heritage-status-kuttanad/455",
+      "supports": "Farming below sea level; land reclaimed from Vembanad Lake; bunds of coir, bamboo and clay; FAO GIAHS status in 2013"
+    }
+  ],
+  "review": {
+    "status": "pending",
+    "reviewer": null,
+    "date": null,
+    "notes": "Kerala Tourism pages disagree on Kuttanad's depth below sea level, so the card gives no number."
+  }
+}
