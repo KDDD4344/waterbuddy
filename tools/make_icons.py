@@ -82,10 +82,17 @@ def render(size: int, scale: float, samples: int = 3) -> bytes:
 
 def write_png(path: Path, size: int, raw: bytes) -> None:
     def chunk(tag: bytes, data: bytes) -> bytes:
-        return struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        return (
+            struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        )
 
     header = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)
-    png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
+    png = (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", header)
+        + chunk(b"IDAT", zlib.compress(raw, 9))
+        + chunk(b"IEND", b"")
+    )
     path.write_bytes(png)
 
 

@@ -11,7 +11,10 @@ export interface Progress {
   reached: boolean;
 }
 
-export function progress(totalMl: number, goalMl: number, glassMl = 250): Progress {
+/** The glass used for "about N glasses to go". */
+export const STANDARD_GLASS_ML = 250;
+
+export function progress(totalMl: number, goalMl: number, glassMl = STANDARD_GLASS_ML): Progress {
   const safeGoal = Math.max(1, goalMl);
   const fill = Math.min(1, Math.max(0, totalMl / safeGoal));
   const remainingMl = Math.max(0, safeGoal - totalMl);

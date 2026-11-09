@@ -73,6 +73,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install pytest
+      - run: pip install pytest ruff
+      - run: ruff check tools && ruff format --check tools
       - run: python tools/validate_content.py
       - run: pytest tools -q

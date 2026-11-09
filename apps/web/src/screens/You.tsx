@@ -109,6 +109,43 @@ export function You({ profile }: { profile: Profile }) {
         </div>
       </section>
 
+      <section className="group" aria-labelledby="g-pip">
+        <h2 id="g-pip">Pip and the tidepool</h2>
+        <label className="setting">
+          <span>
+            <span className="setting-label">Animated tidepool</span>
+            <span className="small muted block">Turn off to save battery. Logging works the same either way.</span>
+          </span>
+          <input
+            type="checkbox"
+            className="switch"
+            checked={profile.scene3d !== false}
+            onChange={(e) => updateProfile({ scene3d: e.target.checked })}
+          />
+        </label>
+        <label className="setting">
+          <span>
+            <span className="setting-label">Sounds</span>
+            <span className="small muted block">A pour that rises in pitch as the bottle fills.</span>
+          </span>
+          <input type="checkbox" className="switch" checked={profile.sound === true} onChange={(e) => updateProfile({ sound: e.target.checked })} />
+        </label>
+        <label className="setting">
+          <span>
+            <span className="setting-label">Motion</span>
+            <span className="small muted block">Less motion keeps Pip&rsquo;s reactions but drops the pour, splashes and camera drift.</span>
+          </span>
+          <select
+            value={profile.reduceMotion === undefined ? 'system' : profile.reduceMotion ? 'less' : 'full'}
+            onChange={(e) => updateProfile({ reduceMotion: e.target.value === 'system' ? undefined : e.target.value === 'less' })}
+          >
+            <option value="system">Follow my phone</option>
+            <option value="full">Full motion</option>
+            <option value="less">Less motion</option>
+          </select>
+        </label>
+      </section>
+
       <section className="group" aria-labelledby="g-data">
         <h2 id="g-data">Your data</h2>
         <p className="small muted">Everything is stored only on this phone.</p>
@@ -310,7 +347,7 @@ function BuildInfo() {
         <dt>Reminder server</dt>
         <dd>{api}</dd>
         <dt>Version</dt>
-        <dd>Phase 1 · tracker</dd>
+        <dd>Phase 2 · Pip and the tidepool</dd>
       </dl>
     </section>
   );

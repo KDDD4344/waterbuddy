@@ -3,12 +3,14 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type DrinkLog, type Profile, type Vessel } from '../data/db';
 import { addLog, logsForDay, removeLog, restoreLog, updateLog } from '../data/repo';
 import { dayLabel, timeLabel } from '../domain/dates';
-import { crossedMilestone, progress } from '../domain/progress';
+import { crossedMilestone, progress, STANDARD_GLASS_ML } from '../domain/progress';
 import { shouldShowSipGuard } from '../domain/guards';
 import { formatAmount, formatBig, spokenAmount } from '../domain/units';
 import { useToday } from '../hooks/useToday';
 import { useToast } from '../ui/toast';
-import { PipInBottle } from '../components/PipInBottle';
+import { tidepoolBus } from '../three/bus';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { Stage } from './Stage';
 import { CustomAmountSheet, EditLogSheet } from './LogSheets';
 
 const STAMP_WORDS: Record<number, string> = { 25: 'Underway', 50: 'Halfway', 75: 'Nearly there', 100: 'Bottle full' };
@@ -22,20 +24,32 @@ export function Today({ profile }: { profile: Profile }) {
   const [editing, setEditing] = useState<DrinkLog | null>(null);
   const [stamp, setStamp] = useState<{ pct: number; key: number } | null>(null);
   const [guardDismissedAt, setGuardDismissedAt] = useState(0);
+  const reducedMotion = useReducedMotion(profile.reduceMotion);
 
   const list = logs ?? [];
   const total = list.reduce((s, l) => s + l.ml, 0);
-  const glassMl = vessels?.find((v) => v.ml <= 350)?.ml ?? 250;
-  const p = progress(total, profile.goalMl, glassMl);
+  // "Glasses to go" always means a standard 250 ml glass, so it reads the same whatever vessels someone uses.
+  const p = progress(total, profile.goalMl, STANDARD_GLASS_ML);
   const big = formatBig(total, profile.units, profile.cupMl);
   const fmt = (ml: number) => formatAmount(ml, profile.units, profile.cupMl);
   const showGuard = shouldShowSipGuard(list, new Date()) && Date.now() - guardDismissedAt > 60 * 60 * 1000;
 
   const log = async (ml: number, vessel?: Vessel) => {
     const before = total;
-    const entry = await addLog(ml, vessel?.id ?? null);
     const after = before + ml;
     const milestone = before < profile.goalMl ? crossedMilestone(before, after, profile.goalMl) : null;
+    // Start the pour animation straight away; storage catches up a few milliseconds later.
+    tidepoolBus.emit({
+      type: 'pour',
+      event: {
+        ml,
+        fromFill: Math.min(1, before / profile.goalMl),
+        toFill: Math.min(1, after / profile.goalMl),
+        milestone,
+        overGoal: before >= profile.goalMl
+      }
+    });
+    const entry = await addLog(ml, vessel?.id ?? null);
     if (milestone) setStamp({ pct: milestone, key: Date.now() });
     const status =
       before >= profile.goalMl
@@ -43,7 +57,16 @@ export function Today({ profile }: { profile: Profile }) {
         : after >= profile.goalMl
           ? `${fmt(ml)} logged. Goal reached for today.`
           : `${fmt(ml)} logged. ${fmt(after)} of ${fmt(profile.goalMl)}.`;
-    toast({ text: status, action: { label: 'Undo', run: () => void removeLog(entry.id) } });
+    toast({
+      text: status,
+      action: {
+        label: 'Undo',
+        run: () => {
+          tidepoolBus.emit({ type: 'undo', toFill: Math.min(1, before / profile.goalMl) });
+          void removeLog(entry.id);
+        }
+      }
+    });
   };
 
   const subline = p.reached
@@ -52,31 +75,36 @@ export function Today({ profile }: { profile: Profile }) {
 
   return (
     <main className="screen today">
-      <p className="kicker">{dayLabel(today, today)} · fluids logged</p>
-      <section className="stat" aria-label="Today's progress">
-        <p className="big" aria-hidden="true">
-          <span className="big-value">{big.value}</span>
-          <span className="big-unit">{big.unit}</span>
-        </p>
-        <p className="sr-only">
-          {spokenAmount(total, profile.units, profile.cupMl)} of {spokenAmount(profile.goalMl, profile.units, profile.cupMl)}, {p.percent} percent.
-        </p>
-        <p className="subline" aria-hidden="true">
-          {subline}
-        </p>
-        {stamp && (
-          <div key={stamp.key} className="stamp" aria-hidden="true" onAnimationEnd={() => setStamp(null)}>
-            <b>{stamp.pct}%</b>
-            <span>{STAMP_WORDS[stamp.pct]}</span>
-          </div>
-        )}
-      </section>
-
-      <PipInBottle
-        className="hero"
-        fill={p.fill}
-        label={`Pip's bottle is ${p.percent} percent full.${p.reached ? ' It is full for today.' : ''}`}
-      />
+      <div className="stage">
+        <Stage
+          fill={p.fill}
+          label={`Pip's bottle is ${p.percent} percent full.${p.reached ? ' It is full for today.' : ''}`}
+          want3d={profile.scene3d !== false}
+          reducedMotion={reducedMotion}
+          soundOn={profile.sound === true}
+        />
+        <div className="stage-top">
+          <p className="kicker">{dayLabel(today, today)} · fluids logged</p>
+          <section className="stat" aria-label="Today's progress">
+            <p className="big" aria-hidden="true">
+              <span className="big-value">{big.value}</span>
+              <span className="big-unit">{big.unit}</span>
+            </p>
+            <p className="sr-only">
+              {spokenAmount(total, profile.units, profile.cupMl)} of {spokenAmount(profile.goalMl, profile.units, profile.cupMl)}, {p.percent} percent.
+            </p>
+            <p className="subline" aria-hidden="true">
+              {subline}
+            </p>
+            {stamp && (
+              <div key={stamp.key} className="stamp" aria-hidden="true" onAnimationEnd={() => setStamp(null)}>
+                <b>{stamp.pct}%</b>
+                <span>{STAMP_WORDS[stamp.pct]}</span>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
       <div className="meter" role="progressbar" aria-label="Today's goal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={p.percent}>
         <div className="meter-fill" style={{ width: `${p.percent}%` }} />
       </div>

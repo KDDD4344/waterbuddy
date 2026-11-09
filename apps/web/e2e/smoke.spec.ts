@@ -45,6 +45,31 @@ test('logging takes under 2 seconds from tap to updated total', async ({ page })
   expect(Date.now() - start).toBeLessThan(2000);
 });
 
+test('Pip’s 3D tidepool loads after the numbers, and a pour plays without blocking logging', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  const hasWebGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl'));
+  test.skip(!hasWebGL, 'This browser build has no WebGL; the flat drawing is used instead.');
+
+  await onboard(page);
+  // The numbers are usable before the 3D scene exists.
+  await expect(stat(page)).toContainText('0 millilitres of 2 litres');
+  await expect(page.locator('.stage-3d.ready')).toBeVisible({ timeout: 20_000 });
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: info.outputPath('today-3d-idle.png') });
+
+  await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('500 millilitres of 2 litres');
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: info.outputPath('today-3d-pouring.png') });
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: info.outputPath('today-3d-after.png') });
+  expect(errors).toEqual([]);
+});
+
 test('works in airplane mode after the first visit', async ({ page, context }) => {
   await onboard(page);
   await page.evaluate(async () => {

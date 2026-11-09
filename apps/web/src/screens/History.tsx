@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type DrinkLog, type Profile } from '../data/db';
 import { goalOn, logsForDay, removeLog, restoreLog, totalsForDays, updateLog } from '../data/repo';
-import { dayLabel, lastNDays, timeLabel, type DayKey } from '../domain/dates';
+import { dayKey, dayLabel, lastNDays, timeLabel, type DayKey } from '../domain/dates';
 import { progress } from '../domain/progress';
 import { formatAmount, spokenAmount } from '../domain/units';
 import { useToday } from '../hooks/useToday';
@@ -13,7 +13,9 @@ const DAYS = 14;
 
 export function History({ profile }: { profile: Profile }) {
   const today = useToday();
-  const days = lastNDays(today, DAYS);
+  // Only days since the person started; earlier days would read as empty bottles they never had.
+  const startDay = dayKey(new Date(profile.createdAt));
+  const days = lastNDays(today, DAYS).filter((d) => d >= startDay);
   const totals = useLiveQuery(() => totalsForDays(days), [today]);
   const goals = useLiveQuery(() => db.goals.toArray(), []);
   const [open, setOpen] = useState<DayKey | null>(null);
@@ -28,14 +30,18 @@ export function History({ profile }: { profile: Profile }) {
   });
   const lastWeek = rows.slice(0, 7);
   const met = lastWeek.filter((r) => r.p.reached).length;
+  const lead =
+    rows.length <= 1
+      ? 'Your days will collect here, one bottle at a time.'
+      : met === 0
+        ? 'Every day is a fresh bottle.'
+        : `Bottle full on ${met} of the last ${lastWeek.length} days.`;
 
   return (
     <main className="screen history">
-      <p className="kicker">Last {DAYS} days</p>
+      <p className="kicker">{rows.length < DAYS ? 'Since you started' : `Last ${DAYS} days`}</p>
       <h1 className="title">History</h1>
-      <p className="lead">
-        {met === 0 ? 'Every day is a fresh bottle.' : `Bottle full on ${met} of the last 7 days.`}
-      </p>
+      <p className="lead">{lead}</p>
 
       <ul className="days">
         {rows.map((r) => (

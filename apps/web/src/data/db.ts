@@ -14,6 +14,12 @@ export interface Profile {
   cupMl: number;
   parentConfirmed: boolean;
   createdAt: string;
+  /** Animated 3D tidepool on Today. Default on where the device supports it. */
+  scene3d?: boolean;
+  /** Pour and reaction sounds. Default off. */
+  sound?: boolean;
+  /** Overrides the system reduce-motion setting when set. */
+  reduceMotion?: boolean;
 }
 
 export interface Vessel {

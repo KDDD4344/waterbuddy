@@ -54,7 +54,11 @@ def check_postcard(path: Path, data: object, report: Report, strict: bool, root:
         release.append(f"{name}: no sources yet")
     else:
         for i, s in enumerate(sources):
-            if not isinstance(s, dict) or not s.get("title") or not str(s.get("url", "")).startswith("https://"):
+            if (
+                not isinstance(s, dict)
+                or not s.get("title")
+                or not str(s.get("url", "")).startswith("https://")
+            ):
                 report.errors.append(f"{name}: source {i + 1} needs a title and an https URL")
     review = data["review"]
     if not isinstance(review, dict) or review.get("status") != "approved":
@@ -63,8 +67,62 @@ def check_postcard(path: Path, data: object, report: Report, strict: bool, root:
         report.errors.append(f"{name}: approved review needs a reviewer and a date")
 
 
+GOAL_BAND_KEYS = ("id", "label", "suggested_ml", "range_ml", "parent_setup", "why", "source_ids")
+
+
+def check_goals(path: Path, data: object, report: Report, strict: bool) -> None:
+    """Goal suggestions are health guidance, so they get the same source and review rules as postcards."""
+    name = path.name
+    if (
+        not isinstance(data, dict)
+        or not isinstance(data.get("bands"), list)
+        or not isinstance(data.get("sources"), list)
+    ):
+        report.errors.append(f"{name}: needs 'bands' and 'sources' lists")
+        return
+    source_ids = set()
+    for s in data["sources"]:
+        if (
+            not isinstance(s, dict)
+            or not s.get("id")
+            or not s.get("title")
+            or not str(s.get("url", "")).startswith("https://")
+        ):
+            report.errors.append(f"{name}: every source needs an id, a title and an https URL")
+        else:
+            source_ids.add(s["id"])
+    for b in data["bands"]:
+        if not isinstance(b, dict) or any(k not in b for k in GOAL_BAND_KEYS):
+            report.errors.append(f"{name}: a band is missing one of {', '.join(GOAL_BAND_KEYS)}")
+            continue
+        label = f"{name} band {b['id']}"
+        lo, hi = (b["range_ml"] + [0, 0])[:2] if isinstance(b["range_ml"], list) else (0, 0)
+        if not (500 <= lo <= b["suggested_ml"] <= hi <= 5000):
+            report.errors.append(f"{label}: suggestion must sit inside its range, within 500 to 5000 ml")
+        if not str(b["why"]).strip():
+            report.errors.append(f"{label}: 'why' is empty")
+        if not b["source_ids"]:
+            report.errors.append(f"{label}: no sources")
+        for sid in b["source_ids"]:
+            if sid not in source_ids:
+                report.errors.append(f"{label}: unknown source '{sid}'")
+    review = data.get("review")
+    release = report.errors if strict else report.warnings
+    if not isinstance(review, dict) or review.get("status") != "approved":
+        release.append(f"{name}: not reviewed yet")
+    elif not review.get("reviewer") or not review.get("date"):
+        report.errors.append(f"{name}: approved review needs a reviewer and a date")
+
+
 def validate(root: Path, strict: bool = False) -> Report:
     report = Report()
+    goals = root / "goals.json"
+    if goals.exists():
+        report.checked += 1
+        try:
+            check_goals(goals, json.loads(goals.read_text(encoding="utf-8")), report, strict)
+        except json.JSONDecodeError as exc:
+            report.errors.append(f"goals.json: invalid JSON ({exc.msg}, line {exc.lineno})")
     for path in sorted((root / "postcards").rglob("*.json")):
         report.checked += 1
         try:
@@ -85,7 +143,9 @@ def main(argv: list[str]) -> int:
         print(f"warning: {w}")
     for e in report.errors:
         print(f"error:   {e}")
-    print(f"{report.checked} postcard(s) checked, {len(report.errors)} error(s), {len(report.warnings)} warning(s)")
+    print(
+        f"{report.checked} file(s) checked, {len(report.errors)} error(s), {len(report.warnings)} warning(s)"
+    )
     return 1 if report.errors else 0
 
 
