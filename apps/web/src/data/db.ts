@@ -4,6 +4,7 @@ import Dexie, { type Table } from 'dexie';
 import type { AgeBandId } from '../domain/goals';
 import type { DayKey } from '../domain/dates';
 import type { Units } from '../domain/units';
+import type { TaskAnswer } from '../domain/tasks';
 
 export interface Profile {
   id: 'me';
@@ -20,6 +21,10 @@ export interface Profile {
   sound?: boolean;
   /** Overrides the system reduce-motion setting when set. */
   reduceMotion?: boolean;
+  /** Usual sleep time "HH:MM", from the last-call field task. Reminders stop 2 hours before (Phase 6). */
+  bedtime?: string;
+  /** Preferred reminder window from field task 9, or "none". */
+  reminderPref?: string;
 }
 
 export interface Vessel {
@@ -53,11 +58,30 @@ export interface GoalChange {
   at: string;
 }
 
+/** A field task outcome. "skipped" costs nothing; the task returns the next day. */
+export interface TaskRecord {
+  /** The task's id from content/field-tasks.json. */
+  id: string;
+  status: 'done' | 'skipped';
+  day: DayKey;
+  at: string;
+  answer?: TaskAnswer;
+}
+
+/** One journal note per day. */
+export interface Note {
+  day: DayKey;
+  text: string;
+  at: string;
+}
+
 export class WaterBuddyDB extends Dexie {
   profile!: Table<Profile, 'me'>;
   vessels!: Table<Vessel, string>;
   logs!: Table<DrinkLog, string>;
   goals!: Table<GoalChange, string>;
+  tasks!: Table<TaskRecord, string>;
+  notes!: Table<Note, string>;
 
   constructor(name = 'waterbuddy') {
     super(name);
@@ -66,6 +90,11 @@ export class WaterBuddyDB extends Dexie {
       vessels: 'id, order',
       logs: 'id, day, at',
       goals: 'id, day, at'
+    });
+    // Phase 3: field tasks and journal notes. Additive, so existing data is untouched.
+    this.version(2).stores({
+      tasks: 'id, day',
+      notes: 'day'
     });
   }
 }

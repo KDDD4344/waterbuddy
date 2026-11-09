@@ -62,8 +62,8 @@ Read [`docs/safety-rules.md`](docs/safety-rules.md) before building any feature 
 | 0 | Foundations | Done |
 | 1 | The tracker, no 3D yet | Done |
 | 2 | Pip and the tidepool | Done (frame rate still to check on a real mid-range phone) |
-| 3 | Field tasks and the journal | Next |
-| 4 | Night voyage and postcards | |
+| 3 | Field tasks and the journal | Done |
+| 4 | Night voyage and postcards | Next |
 | 5 | The Waterverse | |
 | 6 | Reminders and installing | |
 | 7 | Production art and motion | |

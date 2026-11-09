@@ -86,3 +86,42 @@ test('works in airplane mode after the first visit', async ({ page, context }) =
   await expect(stat(page)).toContainText('250 millilitres of 2 litres');
   await context.setOffline(false);
 });
+
+test('a field task takes under 30 seconds from the Today chip and lands in the Journal', async ({ page }, info) => {
+  await onboard(page);
+  const start = Date.now();
+  await page.getByRole('button', { name: /Field task 1 of 14/ }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByText('Pick a cue for your first glass').first()).toBeVisible();
+  await page.waitForTimeout(600); // let the sheet finish unfolding for the screenshot
+  await page.screenshot({ path: info.outputPath('task-sheet.png') });
+  await sheet.getByRole('radio', { name: 'Have my morning chai' }).check();
+  await sheet.getByRole('button', { name: 'Set this cue' }).click();
+  await expect(sheet.getByRole('img', { name: 'Pressed leaf sticker' })).toBeVisible();
+  expect(Date.now() - start).toBeLessThan(30_000);
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: info.outputPath('task-sticker.png') });
+  await sheet.getByRole('button', { name: 'Done' }).click();
+  await expect(page.getByText(/Your cue: When I have my morning chai/)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Journal' }).click();
+  await expect(page.getByText('1 of 14 pressed in')).toBeVisible();
+  await page.getByRole('textbox', { name: 'Today' }).fill('Chai, then a full glass.');
+  await page.getByRole('button', { name: 'Save line' }).click();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: info.outputPath('journal.png'), fullPage: true });
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Journal' }).click();
+  await expect(page.getByText('1 of 14 pressed in')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Today' })).toHaveValue('Chai, then a full glass.');
+});
+
+test('"Not today" costs nothing', async ({ page }) => {
+  await onboard(page);
+  await page.getByRole('button', { name: /Field task 1 of 14/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Not today' }).click();
+  await expect(page.getByText('Field task saved for tomorrow. Nothing lost.')).toBeVisible();
+  await page.getByRole('button', { name: 'Journal' }).click();
+  await expect(page.getByText('0 of 14 pressed in')).toBeVisible();
+});

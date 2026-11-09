@@ -175,6 +175,26 @@ export class TidepoolController {
     this.sound.tone(520, 0.2);
   }
 
+  /** A field task was finished: Pip dances and a ring of bubbles rises around the bottle. */
+  celebrate() {
+    if (this.pouring) return;
+    this.pip.trigger(this.reducedMotion ? 'nod' : 'dance');
+    this.pip.setExpression('happy');
+    this.sound.chord(440);
+    this.after(2.2, () => this.pip.setExpression('idle'));
+    if (this.reducedMotion) return;
+    const c = this.pip.root.position;
+    for (let i = 0; i < 46; i++) {
+      const a = (i / 46) * Math.PI * 2;
+      this.bubbles.spawn(
+        new THREE.Vector3(c.x + Math.cos(a) * 1.9, 0.2 + Math.random() * 0.4, c.z + Math.sin(a) * 1.2),
+        new THREE.Vector3(Math.cos(a) * 0.3, 1.6 + Math.random() * 1.6, Math.sin(a) * 0.3),
+        2.2,
+        0.12 + Math.random() * 0.12
+      );
+    }
+  }
+
   /** Say hello when the scene first appears. */
   greet() {
     this.pip.trigger('wave');

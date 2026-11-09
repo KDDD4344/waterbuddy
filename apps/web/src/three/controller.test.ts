@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { TidepoolController } from './controller';
 
@@ -64,5 +64,31 @@ describe('TidepoolController', () => {
   it('cleans up GPU resources', () => {
     const c = new TidepoolController();
     expect(() => c.dispose()).not.toThrow();
+  });
+
+  it('celebrates a finished field task: Pip dances and a chord plays', () => {
+    const chord = vi.fn();
+    const c = new TidepoolController({ fill: 0.4, sound: { enabled: true, pour() {}, tone() {}, chord } });
+    const trigger = vi.spyOn(c.pip, 'trigger');
+    c.celebrate();
+    expect(trigger).toHaveBeenCalledWith('dance');
+    expect(chord).toHaveBeenCalledTimes(1);
+    run(c, 3);
+    expect(c.pip.fill).toBeCloseTo(0.4, 2); // a task never changes the water
+  });
+
+  it('a celebration waits its turn: never interrupts a pour', () => {
+    const c = new TidepoolController({ fill: 0.4 });
+    c.pour({ ml: 250, fromFill: 0.4, toFill: 0.525, milestone: null, overGoal: false });
+    const trigger = vi.spyOn(c.pip, 'trigger');
+    c.celebrate();
+    expect(trigger).not.toHaveBeenCalled();
+  });
+
+  it('with reduced motion, a celebration is a nod', () => {
+    const c = new TidepoolController({ fill: 0.4, reducedMotion: true });
+    const trigger = vi.spyOn(c.pip, 'trigger');
+    c.celebrate();
+    expect(trigger).toHaveBeenCalledWith('nod');
   });
 });

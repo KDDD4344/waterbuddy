@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -114,8 +115,70 @@ def check_goals(path: Path, data: object, report: Report, strict: bool) -> None:
         report.errors.append(f"{name}: approved review needs a reviewer and a date")
 
 
+TASK_TYPES = {"cue", "choice", "check", "scale", "time", "note"}
+STICKERS = {
+    "leaf", "shell", "moon", "tumbler", "feather", "compass", "lantern",
+    "starfish", "bell", "mint", "sun", "pebble", "owl", "bottle",
+}  # fmt: skip
+VOLUME_WORDS = ("drink more", "more water", "extra glass", "litres more", "liters more")
+
+
+def check_tasks(path: Path, data: object, report: Report) -> None:
+    """The starter routine: 14 tasks, one per day, each with a known type and sticker."""
+    name = path.name
+    tasks = data.get("tasks") if isinstance(data, dict) else None
+    if not isinstance(tasks, list):
+        report.errors.append(f"{name}: needs a 'tasks' list")
+        return
+    ids: set[str] = set()
+    stickers: set[str] = set()
+    days = []
+    for t in tasks:
+        if not isinstance(t, dict) or not all(
+            t.get(k) for k in ("id", "day", "type", "title", "body", "sticker")
+        ):
+            report.errors.append(f"{name}: every task needs id, day, type, title, body and sticker")
+            continue
+        label = f"{name} task {t['id']}"
+        if t["id"] in ids:
+            report.errors.append(f"{label}: duplicate id")
+        ids.add(t["id"])
+        days.append(t["day"])
+        if t["type"] not in TASK_TYPES:
+            report.errors.append(f"{label}: unknown type '{t['type']}'")
+        if t["sticker"] not in STICKERS:
+            report.errors.append(f"{label}: unknown sticker '{t['sticker']}'")
+        if t["sticker"] in stickers:
+            report.errors.append(f"{label}: sticker '{t['sticker']}' is used twice")
+        stickers.add(t["sticker"])
+        if t["type"] in ("cue", "choice") and len(t.get("options") or []) < 2:
+            report.errors.append(f"{label}: needs at least two options")
+        if t["type"] == "cue" and "{answer}" not in str(t.get("sentence", "")):
+            report.errors.append(f"{label}: cue sentence must contain {{answer}}")
+        if t["type"] == "check" and not t.get("confirm"):
+            report.errors.append(f"{label}: check tasks need a confirm label")
+        if t["type"] == "scale" and not (t.get("low") and t.get("high")):
+            report.errors.append(f"{label}: scale tasks need low and high labels")
+        if t["type"] == "time" and not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", str(t.get("default", ""))):
+            report.errors.append(f"{label}: time tasks need a default like 22:30")
+        # Safety rule 1: tasks shape routines, never volume.
+        text = f"{t['title']} {t['body']} {t.get('sentence', '')} {' '.join(t.get('options') or [])}".lower()
+        for w in VOLUME_WORDS:
+            if w in text:
+                report.errors.append(f"{label}: mentions '{w}'; tasks must never push for more water")
+    if sorted(days) != list(range(1, len(days) + 1)):
+        report.errors.append(f"{name}: days must run 1, 2, 3… with no gaps or repeats")
+
+
 def validate(root: Path, strict: bool = False) -> Report:
     report = Report()
+    tasks = root / "field-tasks.json"
+    if tasks.exists():
+        report.checked += 1
+        try:
+            check_tasks(tasks, json.loads(tasks.read_text(encoding="utf-8")), report)
+        except json.JSONDecodeError as exc:
+            report.errors.append(f"field-tasks.json: invalid JSON ({exc.msg}, line {exc.lineno})")
     goals = root / "goals.json"
     if goals.exists():
         report.checked += 1

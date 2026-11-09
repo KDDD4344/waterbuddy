@@ -1,0 +1,159 @@
+{
+  "note": "The 14-day starter routine. One task a day, each under 30 seconds. Tasks build cues, places and reflection; none ever asks anyone to drink more.",
+  "tasks": [
+    {
+      "id": "first-cue",
+      "day": 1,
+      "kind": "Anchor",
+      "type": "cue",
+      "title": "Pick a cue for your first glass",
+      "body": "Habits stick to things you already do. Choose a moment you never miss.",
+      "sentence": "When I {answer}, I'll fill my glass too.",
+      "options": ["brush my teeth", "have my morning chai", "reach class or my desk"],
+      "allow_own": true,
+      "sticker": "leaf"
+    },
+    {
+      "id": "bottle-home",
+      "day": 2,
+      "kind": "Prepare",
+      "type": "choice",
+      "title": "Give your bottle a home",
+      "body": "Water you can see gets drunk. Pick where your bottle will live.",
+      "options": ["Next to my bed", "On my desk", "In my bag", "By the kitchen tap"],
+      "allow_own": true,
+      "sticker": "shell"
+    },
+    {
+      "id": "fill-tonight",
+      "day": 3,
+      "kind": "Prepare",
+      "type": "check",
+      "title": "Fill tomorrow's bottle tonight",
+      "body": "Fill a bottle before bed and leave it where you'll see it when you wake up.",
+      "confirm": "I've filled it",
+      "sticker": "moon"
+    },
+    {
+      "id": "meal-cue",
+      "day": 4,
+      "kind": "Anchor",
+      "type": "cue",
+      "title": "Pair a glass with a meal",
+      "body": "Meals happen every day, which makes them strong cues.",
+      "sentence": "When I {answer}, I'll have a glass of water with it.",
+      "options": ["eat breakfast", "eat lunch", "eat dinner"],
+      "allow_own": false,
+      "sticker": "tumbler"
+    },
+    {
+      "id": "what-helped",
+      "day": 5,
+      "kind": "Reflect",
+      "type": "choice",
+      "title": "What made it easy yesterday?",
+      "body": "Noticing what works is how routines get easier.",
+      "options": ["My cue", "Having a bottle nearby", "Pip's bottle on my screen", "Nothing in particular"],
+      "allow_own": true,
+      "sticker": "feather"
+    },
+    {
+      "id": "carry-water",
+      "day": 6,
+      "kind": "Prepare",
+      "type": "check",
+      "title": "Take water with you",
+      "body": "Pack your bottle or tumbler the next time you head out.",
+      "confirm": "It's packed",
+      "sticker": "compass"
+    },
+    {
+      "id": "easy-to-see",
+      "day": 7,
+      "kind": "Environment",
+      "type": "choice",
+      "title": "Make water the easy choice",
+      "body": "Put water somewhere you pass often.",
+      "options": ["Front of the fridge", "On the dining table", "Next to the TV", "At my workspace"],
+      "allow_own": true,
+      "sticker": "lantern"
+    },
+    {
+      "id": "afternoon-cue",
+      "day": 8,
+      "kind": "Anchor",
+      "type": "cue",
+      "title": "A cue for the afternoon",
+      "body": "Afternoons are when many people forget. Pick a moment that already happens.",
+      "sentence": "When I {answer}, I'll drink some water.",
+      "options": ["finish a class or meeting", "have tea time", "stand up after sitting a while"],
+      "allow_own": true,
+      "sticker": "starfish"
+    },
+    {
+      "id": "reminder-time",
+      "day": 9,
+      "kind": "Reflect",
+      "type": "choice",
+      "title": "When would a reminder help most?",
+      "body": "Later on, Pip can send one gentle reminder a day. Pick the time it would actually help, or none.",
+      "options": ["Morning", "Around lunch", "Mid-afternoon", "Early evening", "I don't want reminders"],
+      "allow_own": false,
+      "sticker": "bell"
+    },
+    {
+      "id": "new-way",
+      "day": 10,
+      "kind": "Explore",
+      "type": "choice",
+      "title": "Try water a new way",
+      "body": "Plain water can taste different. Try one today, if you like.",
+      "options": ["A slice of lemon", "A few mint leaves", "Cucumber slices", "Warm instead of cold", "Just as it is"],
+      "allow_own": false,
+      "sticker": "mint"
+    },
+    {
+      "id": "hot-day-plan",
+      "day": 11,
+      "kind": "Prepare",
+      "type": "cue",
+      "title": "Plan for a hot or busy day",
+      "body": "Heat and busy days make water easy to forget. Decide now, so you don't have to then.",
+      "sentence": "On a hot or busy day, I'll {answer}.",
+      "options": ["carry a bigger bottle", "have a glass before I go out", "keep water at my desk"],
+      "allow_own": true,
+      "sticker": "sun"
+    },
+    {
+      "id": "how-automatic",
+      "day": 12,
+      "kind": "Reflect",
+      "type": "scale",
+      "title": "How automatic is your first glass?",
+      "body": "There's no right answer. It's just for you to see the change over time.",
+      "low": "I have to remember",
+      "high": "I don't think about it",
+      "sticker": "pebble"
+    },
+    {
+      "id": "last-call",
+      "day": 13,
+      "kind": "Environment",
+      "type": "time",
+      "title": "Choose your last call",
+      "body": "Pip stops asking two hours before you sleep, so drinking late never keeps you up. When do you usually go to sleep?",
+      "default": "22:30",
+      "sticker": "owl"
+    },
+    {
+      "id": "look-back",
+      "day": 14,
+      "kind": "Reflect",
+      "type": "note",
+      "title": "Look back at your two weeks",
+      "body": "What will you keep doing? Write a line for future you.",
+      "placeholder": "Keep the bottle by my bed…",
+      "sticker": "bottle"
+    }
+  ]
+}

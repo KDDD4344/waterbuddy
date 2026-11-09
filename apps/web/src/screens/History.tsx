@@ -11,7 +11,8 @@ import { EditLogSheet } from './LogSheets';
 
 const DAYS = 14;
 
-export function History({ profile }: { profile: Profile }) {
+/** Drink history. Embedded at the bottom of the Journal; it has its own heading there. */
+export function History({ profile, embedded = false }: { profile: Profile; embedded?: boolean }) {
   const today = useToday();
   // Only days since the person started; earlier days would read as empty bottles they never had.
   const startDay = dayKey(new Date(profile.createdAt));
@@ -38,10 +39,10 @@ export function History({ profile }: { profile: Profile }) {
         : `Bottle full on ${met} of the last ${lastWeek.length} days.`;
 
   return (
-    <main className="screen history">
+    <Wrap embedded={embedded}>
       <p className="kicker">{rows.length < DAYS ? 'Since you started' : `Last ${DAYS} days`}</p>
-      <h1 className="title">History</h1>
-      <p className="lead">{lead}</p>
+      {embedded ? <h2>Drink history</h2> : <h1 className="title">History</h1>}
+      <p className={embedded ? undefined : 'lead'}>{lead}</p>
 
       <ul className="days">
         {rows.map((r) => (
@@ -86,8 +87,12 @@ export function History({ profile }: { profile: Profile }) {
           toast({ text: 'Drink deleted.', action: { label: 'Undo', run: () => void restoreLog(id) } });
         }}
       />
-    </main>
+    </Wrap>
   );
+}
+
+function Wrap({ embedded, children }: { embedded: boolean; children: React.ReactNode }) {
+  return embedded ? <div className="history">{children}</div> : <main className="screen history">{children}</main>;
 }
 
 function DayEntries({ day, profile, onEdit }: { day: DayKey; profile: Profile; onEdit: (l: DrinkLog) => void }) {

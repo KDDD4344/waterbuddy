@@ -278,6 +278,7 @@ p {
 input[type='number'],
 input[type='text'],
 input[type='time'],
+textarea,
 select {
   min-height: 48px;
   padding: 0 var(--wb-space-3);
@@ -958,4 +959,367 @@ select {
   background: var(--wb-mist);
   color: var(--wb-ink);
   font-weight: 700;
+}
+
+/* Field tasks (Phase 3) */
+.task-chip,
+.task-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-3);
+  min-height: 64px;
+  padding: var(--wb-space-3) var(--wb-space-4);
+  border: 1.5px dashed var(--wb-rust);
+  border-radius: var(--wb-radius-m);
+  background: var(--wb-card);
+  color: var(--wb-ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.task-card {
+  border-style: solid;
+  border-color: var(--wb-rule);
+  box-shadow: 3px 3px 0 var(--wb-rule);
+}
+
+.task-sticker {
+  flex: none;
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.task-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-kicker {
+  font-family: var(--wb-font-mono);
+  font-weight: 600;
+  font-size: var(--wb-text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wb-rust);
+}
+
+.task-title {
+  font-family: var(--wb-font-display);
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.task-note {
+  padding: var(--wb-space-3) var(--wb-space-4);
+  border-left: 3px solid var(--wb-shallows);
+  font-size: 15px;
+  color: var(--wb-ink-muted);
+}
+
+.plan {
+  padding: var(--wb-space-3) var(--wb-space-4);
+  border-radius: var(--wb-radius-s);
+  background: var(--wb-card);
+  border: 1px solid var(--wb-rule);
+  font-family: var(--wb-font-hand);
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.scale {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--wb-space-2);
+}
+
+.scale-point {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  border: 1.5px solid var(--wb-rule);
+  border-radius: var(--wb-radius-m);
+  background: var(--wb-card);
+  font-family: var(--wb-font-display);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.scale-point input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.scale-point:has(input:checked) {
+  background: var(--wb-deep);
+  border-color: var(--wb-deep);
+  color: #fff;
+}
+
+.scale-point:has(input:focus-visible) {
+  outline: 3px solid var(--wb-shallows);
+  outline-offset: 2px;
+}
+
+.scale-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--wb-space-3);
+  margin-top: var(--wb-space-1);
+}
+
+textarea,
+.note-input {
+  width: 100%;
+  padding: var(--wb-space-3);
+  font-family: var(--wb-font-hand);
+  font-size: 19px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.task-done {
+  align-items: center;
+  padding-top: var(--wb-space-3);
+}
+
+.task-done .btn {
+  align-self: stretch;
+}
+
+.slap {
+  animation: slap 0.7s var(--wb-ease-out) both;
+  filter: drop-shadow(0 6px 10px rgba(19, 48, 58, 0.18));
+}
+
+@keyframes slap {
+  0% {
+    opacity: 0;
+    transform: rotate(-26deg) scale(1.8);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(0.94);
+  }
+  100% {
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+/* Journal */
+.journal > section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-2);
+}
+
+.tides {
+  list-style: none;
+  margin: 0;
+  padding: var(--wb-space-4) var(--wb-space-3) var(--wb-space-3);
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--wb-space-2);
+  border-radius: var(--wb-radius-m);
+  background: var(--wb-card);
+  border: 1px solid var(--wb-rule);
+}
+
+.tide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wb-space-1);
+}
+
+.tide-tube {
+  position: relative;
+  width: 26px;
+  height: 92px;
+  border: 2px solid var(--wb-ink);
+  border-radius: 6px 6px 13px 13px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.tide-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, var(--wb-mist), var(--wb-shallows));
+  transition: height var(--wb-dur-slow) var(--wb-ease-out);
+}
+
+.tide[data-full='true'] .tide-water {
+  background: linear-gradient(180deg, var(--wb-shallows), var(--wb-deep));
+}
+
+.tide-day {
+  font-family: var(--wb-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wb-ink-muted);
+}
+
+.tide[data-today='true'] .tide-day {
+  color: var(--wb-rust);
+}
+
+.tide.future::before {
+  content: '';
+  width: 26px;
+  height: 92px;
+  border: 2px dashed var(--wb-rule);
+  border-radius: 6px 6px 13px 13px;
+}
+
+.sticker-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: var(--wb-space-2);
+}
+
+.sticker-slot {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--wb-rule);
+  border-radius: var(--wb-radius-s);
+  font-family: var(--wb-font-mono);
+  font-size: 12px;
+  color: var(--wb-ink-muted);
+}
+
+.sticker-slot.earned {
+  border: 0;
+  background: var(--wb-card);
+}
+
+.sticker-slot:nth-child(3n) svg {
+  transform: rotate(-5deg);
+}
+
+.sticker-slot:nth-child(3n + 1) svg {
+  transform: rotate(4deg);
+}
+
+.answers summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-2);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.answers summary::-webkit-details-marker {
+  display: none;
+}
+
+.answers summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 7px solid var(--wb-rust);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transition: transform var(--wb-dur-fast) var(--wb-ease-out);
+}
+
+.answers[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.answers dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-3);
+}
+
+.answers dt {
+  font-weight: 700;
+}
+
+.answers dd {
+  margin: 0;
+  font-family: var(--wb-font-hand);
+  font-size: 18px;
+}
+
+.note-row {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.past-notes {
+  list-style: none;
+  margin: var(--wb-space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-3);
+}
+
+.hand {
+  font-family: var(--wb-font-hand);
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+/* Origami: journal sections fold down into place one after another, and task sheets unfold. */
+.journal > .fold {
+  transform-origin: top center;
+  animation: fold-in 0.55s var(--wb-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes fold-in {
+  from {
+    opacity: 0;
+    transform: perspective(700px) rotateX(-58deg);
+  }
+}
+
+.sheet.fold[open] {
+  transform-origin: bottom center;
+  animation: unfold 0.5s var(--wb-ease-out);
+}
+
+@keyframes unfold {
+  0% {
+    opacity: 0;
+    transform: perspective(900px) rotateX(70deg);
+  }
+  60% {
+    opacity: 1;
+    transform: perspective(900px) rotateX(-6deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journal > .fold,
+  .sheet.fold[open],
+  .slap {
+    animation: none;
+  }
+}
+
+[data-motion='reduce'] .journal > .fold,
+[data-motion='reduce'] .sheet.fold[open],
+[data-motion='reduce'] .slap {
+  animation: none;
 }

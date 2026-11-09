@@ -5,13 +5,14 @@ type Props = {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 };
 
 /**
  * A bottom sheet built on the native <dialog> element, which gives us a focus trap,
  * Escape to close and a proper modal role for free.
  */
-export function Sheet({ open, title, onClose, children }: Props) {
+export function Sheet({ open, title, onClose, children, className }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -25,7 +26,7 @@ export function Sheet({ open, title, onClose, children }: Props) {
   return (
     <dialog
       ref={ref}
-      className="sheet"
+      className={className ? `sheet ${className}` : 'sheet'}
       aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault();

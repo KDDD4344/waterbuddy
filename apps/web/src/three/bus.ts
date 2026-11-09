@@ -1,6 +1,6 @@
 import type { PourEvent } from './controller';
 
-export type TidepoolEvent = { type: 'pour'; event: PourEvent } | { type: 'undo'; toFill: number };
+export type TidepoolEvent = { type: 'pour'; event: PourEvent } | { type: 'undo'; toFill: number } | { type: 'celebrate' };
 type Listener = (e: TidepoolEvent) => void;
 
 /**

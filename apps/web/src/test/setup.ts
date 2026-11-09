@@ -15,6 +15,9 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
   };
 }
 
+// jsdom has no WebGL. Report "unavailable" quietly so the flat Pip is used in tests.
+HTMLCanvasElement.prototype.getContext = (() => null) as unknown as HTMLCanvasElement['getContext'];
+
 // jsdom has no matchMedia; the install check reads it.
 if (!window.matchMedia) {
   window.matchMedia = (query: string) =>

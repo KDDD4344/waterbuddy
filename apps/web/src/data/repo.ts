@@ -1,6 +1,7 @@
-import { db, newId, type DrinkLog, type GoalChange, type Profile, type Vessel } from './db';
+import { db, newId, type DrinkLog, type GoalChange, type Note, type Profile, type TaskRecord, type Vessel } from './db';
 import { dayKey, deviceTimeZone, type DayKey } from '../domain/dates';
 import { MAX_SINGLE_LOG_ML } from '../domain/guards';
+import type { TaskAnswer } from '../domain/tasks';
 
 export const DEFAULT_VESSELS: Omit<Vessel, 'order'>[] = [
   { id: 'glass', name: 'Glass', ml: 200 },
@@ -123,29 +124,69 @@ export async function restoreLogs(ids: string[]): Promise<void> {
   await db.logs.bulkUpdate(ids.map((id) => ({ key: id, changes: { deletedAt: null } })));
 }
 
+// --- Field tasks and journal (Phase 3) ---
+
+/** Finish a field task. Two tasks also update settings used by reminders later. */
+export async function completeTask(taskId: string, answer: TaskAnswer, now = new Date()): Promise<void> {
+  await db.transaction('rw', db.tasks, db.profile, async () => {
+    await db.tasks.put({ id: taskId, status: 'done', day: dayKey(now), at: now.toISOString(), answer });
+    if (taskId === 'last-call' && answer.kind === 'time') await db.profile.update('me', { bedtime: answer.value });
+    if (taskId === 'reminder-time' && answer.kind === 'text') await db.profile.update('me', { reminderPref: answer.value });
+  });
+}
+
+/** "Not today": costs nothing, and the task comes back tomorrow. */
+export async function skipTask(taskId: string, now = new Date()): Promise<void> {
+  const existing = await db.tasks.get(taskId);
+  if (existing?.status === 'done') return;
+  await db.tasks.put({ id: taskId, status: 'skipped', day: dayKey(now), at: now.toISOString() });
+}
+
+export async function saveNote(day: DayKey, text: string, now = new Date()): Promise<void> {
+  const trimmed = text.trim().slice(0, NOTE_MAX);
+  if (!trimmed) await db.notes.delete(day);
+  else await db.notes.put({ day, text: trimmed, at: now.toISOString() });
+}
+
+export const NOTE_MAX = 280;
+
 export interface ExportFile {
   app: 'WaterBuddy';
-  format: 1;
+  format: 2;
   exportedAt: string;
   profile: Profile | undefined;
   vessels: Vessel[];
   goals: GoalChange[];
   logs: DrinkLog[];
+  tasks: TaskRecord[];
+  notes: Note[];
 }
 
 export async function exportAll(now = new Date()): Promise<ExportFile> {
-  const [profile, vessels, goals, logs] = await Promise.all([
+  const [profile, vessels, goals, logs, tasks, notes] = await Promise.all([
     db.profile.get('me'),
     db.vessels.orderBy('order').toArray(),
     db.goals.toArray(),
-    db.logs.toArray()
+    db.logs.toArray(),
+    db.tasks.toArray(),
+    db.notes.toArray()
   ]);
-  return { app: 'WaterBuddy', format: 1, exportedAt: now.toISOString(), profile, vessels, goals, logs: logs.filter((l) => !l.deletedAt) };
+  return {
+    app: 'WaterBuddy',
+    format: 2,
+    exportedAt: now.toISOString(),
+    profile,
+    vessels,
+    goals,
+    logs: logs.filter((l) => !l.deletedAt),
+    tasks,
+    notes
+  };
 }
 
 /** Permanently removes everything stored on this device. */
 export async function deleteEverything(): Promise<void> {
-  await db.transaction('rw', db.profile, db.vessels, db.logs, db.goals, async () => {
-    await Promise.all([db.profile.clear(), db.vessels.clear(), db.logs.clear(), db.goals.clear()]);
+  await db.transaction('rw', [db.profile, db.vessels, db.logs, db.goals, db.tasks, db.notes], async () => {
+    await Promise.all([db.profile.clear(), db.vessels.clear(), db.logs.clear(), db.goals.clear(), db.tasks.clear(), db.notes.clear()]);
   });
 }

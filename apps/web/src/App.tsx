@@ -4,11 +4,12 @@ import { db, type Profile } from './data/db';
 import { ToastProvider } from './ui/toast';
 import { Onboarding } from './screens/Onboarding';
 import { Today } from './screens/Today';
-import { History } from './screens/History';
+import { Journal } from './screens/Journal';
+import { useReducedMotion } from './hooks/useReducedMotion';
 import { You } from './screens/You';
 import './ui.css';
 
-type Tab = 'today' | 'history' | 'you';
+type Tab = 'today' | 'journal' | 'you';
 const LOADING = Symbol('loading');
 
 export default function App() {
@@ -26,18 +27,20 @@ function Splash() {
 
 function Main({ profile }: { profile: Profile }) {
   const [tab, setTab] = useState<Tab>('today');
+  const reduced = useReducedMotion(profile.reduceMotion);
   return (
-    <div className="app">
+    <div className="app" data-motion={reduced ? 'reduce' : 'full'}>
       {tab === 'today' && <Today profile={profile} />}
-      {tab === 'history' && <History profile={profile} />}
+      {tab === 'journal' && <Journal profile={profile} />}
       {tab === 'you' && <You profile={profile} />}
       <nav className="tabbar" aria-label="Main">
         <TabButton id="today" current={tab} onSelect={setTab} label="Today">
           <path d="M6 3h12l-1.5 17a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" />
           <path d="M6.5 11c2-1 3.5 1 5.5 0s3.5-1 5.5 0" />
         </TabButton>
-        <TabButton id="history" current={tab} onSelect={setTab} label="History">
-          <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+        <TabButton id="journal" current={tab} onSelect={setTab} label="Journal">
+          <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
+          <path d="M5 17a3 3 0 0 1 3-3h11M9 8h6" />
         </TabButton>
         <TabButton id="you" current={tab} onSelect={setTab} label="You">
           <circle cx="12" cy="8" r="4" />

@@ -98,6 +98,42 @@ def test_unreviewed_goals_warn_but_fail_strict(tmp_path: Path) -> None:
     assert any("not reviewed" in e for e in validate(tmp_path, strict=True).errors)
 
 
+TASK = {
+    "id": "t1",
+    "day": 1,
+    "type": "check",
+    "title": "Fill a bottle",
+    "body": "Before bed.",
+    "confirm": "Done",
+    "sticker": "moon",
+}
+
+
+def write_tasks(tmp: Path, tasks: list) -> None:
+    (tmp / "field-tasks.json").write_text(json.dumps({"tasks": tasks}), encoding="utf-8")
+
+
+def test_good_tasks_pass(tmp_path: Path) -> None:
+    write_tasks(tmp_path, [TASK, {**TASK, "id": "t2", "day": 2, "sticker": "owl"}])
+    assert validate(tmp_path).errors == []
+
+
+def test_tasks_must_not_push_volume(tmp_path: Path) -> None:
+    write_tasks(tmp_path, [{**TASK, "body": "Drink more water today!"}])
+    assert any("never push for more water" in e for e in validate(tmp_path).errors)
+
+
+def test_task_days_must_be_consecutive(tmp_path: Path) -> None:
+    write_tasks(tmp_path, [TASK, {**TASK, "id": "t3", "day": 3, "sticker": "owl"}])
+    assert any("no gaps" in e for e in validate(tmp_path).errors)
+
+
+def test_cue_tasks_need_an_answer_slot(tmp_path: Path) -> None:
+    cue = {**TASK, "type": "cue", "sentence": "I will drink.", "options": ["a", "b"]}
+    write_tasks(tmp_path, [cue])
+    assert any("{answer}" in e for e in validate(tmp_path).errors)
+
+
 def test_real_content_has_no_hard_errors() -> None:
     root = Path(__file__).resolve().parent.parent / "content"
     assert validate(root).errors == []

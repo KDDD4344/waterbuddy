@@ -73,3 +73,51 @@ describe('Phase 1 tracker', () => {
     expect(await within(stat).findByText(/400 millilitres of 2 litres/)).toBeInTheDocument();
   });
 });
+
+describe('Phase 3 field tasks and journal', () => {
+  it('finishes a field task from Today and presses its sticker into the Journal', async () => {
+    const user = userEvent.setup();
+    await onboard(user);
+
+    await user.click(await screen.findByRole('button', { name: /Field task 1 of 14/ }));
+    const sheet = await screen.findByRole('dialog');
+    const first = within(sheet).getAllByRole('radio')[0]!;
+    await user.click(first);
+    expect(within(sheet).getByText(/I'll fill my glass too/)).toBeInTheDocument();
+    await user.click(within(sheet).getByRole('button', { name: 'Set this cue' }));
+
+    expect(await within(sheet).findByRole('heading', { name: 'Pressed into your journal' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('img', { name: 'Pressed leaf sticker' })).toBeInTheDocument();
+    await user.click(within(sheet).getByRole('button', { name: 'Done' }));
+    expect(await screen.findByText(/Field task done. Your cue:/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Journal' }));
+    expect(await screen.findByText('1 of 14 pressed in')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Pressed leaf sticker' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Drink history' })).toBeInTheDocument();
+  });
+
+  it('"Not today" costs nothing and keeps the task for tomorrow', async () => {
+    const user = userEvent.setup();
+    await onboard(user);
+
+    await user.click(await screen.findByRole('button', { name: /Field task 1 of 14/ }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Not today' }));
+    expect(await screen.findByText('Field task saved for tomorrow. Nothing lost.')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Saved for tomorrow. Nothing lost.');
+
+    await user.click(screen.getByRole('button', { name: 'Journal' }));
+    expect(await screen.findByText('0 of 14 pressed in')).toBeInTheDocument();
+  });
+
+  it('keeps a line a day in the journal', async () => {
+    const user = userEvent.setup();
+    await onboard(user);
+    await user.click(await screen.findByRole('button', { name: 'Journal' }));
+    const box = await screen.findByRole('textbox', { name: 'Today' });
+    await user.type(box, 'Hot day, carried my bottle everywhere.');
+    await user.click(screen.getByRole('button', { name: 'Save line' }));
+    expect(await screen.findByText('Line saved.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save line' })).toBeDisabled();
+  });
+});

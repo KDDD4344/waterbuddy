@@ -86,7 +86,8 @@ function Scene({ fill, reducedMotion, soundOn, onReady, quality, onSlow }: Tidep
     () =>
       tidepoolBus.subscribe((e) => {
         if (e.type === 'pour') ctrl.pour(e.event);
-        else ctrl.undo(e.toFill);
+        else if (e.type === 'undo') ctrl.undo(e.toFill);
+        else ctrl.celebrate();
       }),
     [ctrl]
   );

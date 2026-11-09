@@ -12,6 +12,7 @@ import { tidepoolBus } from '../three/bus';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Stage } from './Stage';
 import { CustomAmountSheet, EditLogSheet } from './LogSheets';
+import { FieldTaskEntry } from './FieldTask';
 
 const STAMP_WORDS: Record<number, string> = { 25: 'Underway', 50: 'Halfway', 75: 'Nearly there', 100: 'Bottle full' };
 
@@ -108,6 +109,8 @@ export function Today({ profile }: { profile: Profile }) {
       <div className="meter" role="progressbar" aria-label="Today's goal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={p.percent}>
         <div className="meter-fill" style={{ width: `${p.percent}%` }} />
       </div>
+
+      <FieldTaskEntry variant="chip" />
 
       {showGuard && (
         <div className="note calm" role="status">
