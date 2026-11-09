@@ -1,0 +1,23 @@
+{
+  "id": "loktak",
+  "route": "route-1",
+  "number": 1,
+  "place": "Loktak Lake",
+  "region": "Manipur, India",
+  "coordinates": "24.5°N 93.8°E",
+  "message": "The islands here float! They're called phumdis: rings of plants and soil. One holds a whole national park, home of the sangai deer.",
+  "field_find": {
+    "name": "Sangai deer",
+    "note": "A deer found in the wild only on the floating park of Keibul Lamjao."
+  },
+  "art": null,
+  "alt": "Loktak Lake with rings of floating green islands and hills behind.",
+  "sources": [
+    {
+      "title": "Loktak Lake, Ramsar Sites Information Service",
+      "url": "https://rsis.ramsar.org/ris/463",
+      "supports": "Floating phumdis; Keibul Lamjao National Park; sangai deer"
+    }
+  ],
+  "review": { "status": "pending", "reviewer": null, "date": null }
+}

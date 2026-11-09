@@ -1,0 +1,17 @@
+{
+  "id": "umngot",
+  "route": "route-1",
+  "number": 2,
+  "place": "Umngot River",
+  "region": "Meghalaya, India",
+  "coordinates": "25.2°N 92.0°E",
+  "message": "The water here is so clear the boats seem to float in the air. I could see every pebble on the riverbed.",
+  "field_find": {
+    "name": "Living root bridges",
+    "note": "Bridges grown from the roots of fig trees, near Riwai village."
+  },
+  "art": null,
+  "alt": "A small boat over water so clear that its shadow falls on the pebbles below.",
+  "sources": [],
+  "review": { "status": "pending", "reviewer": null, "date": null }
+}

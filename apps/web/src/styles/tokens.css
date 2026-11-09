@@ -1,0 +1,68 @@
+/*
+ * WaterBuddy design tokens (approved direction, 9 Nov 2026).
+ * Colours were contrast-checked against WCAG 2.2; ratios are noted where text uses them.
+ * Change values here, never as literals in components.
+ */
+:root {
+  /* Paper (journal, postcards, UI surfaces) */
+  --wb-paper: #f2efe7;
+  --wb-card: #faf8f2;
+  --wb-rule: #dcd6c8;
+
+  /* Ink */
+  --wb-ink: #13303a; /* 12.1:1 on paper */
+  --wb-ink-muted: #4a5f66; /* 5.9:1 on paper */
+
+  /* Water */
+  --wb-deep: #0e3a49; /* white text on it: 12.2:1 */
+  --wb-abyss: #0a2530;
+  --wb-shallows: #6fb7b0; /* borders and large text only: 5.3:1 on deep */
+  --wb-mist: #a9d6cf; /* 7.7:1 on deep */
+  --wb-foam: #cfe7e2; /* 9.4:1 on deep */
+
+  /* Pip and accents */
+  --wb-coral: #e9784f; /* Pip's shell; decoration, not small text */
+  --wb-rust: #9e4430; /* stamps and kickers: 5.5:1 on paper */
+  --wb-ochre: #c89b3c; /* tape and misprints only, never text (2.2:1) */
+
+  /* Type */
+  --wb-font-display: 'Young Serif', Georgia, serif;
+  --wb-font-body: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', Arial, sans-serif;
+  --wb-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, Menlo, monospace;
+  --wb-font-hand: 'Kalam', cursive;
+
+  /* Type scale (default mode). Kid and older-adult modes scale these in Phase 8. */
+  --wb-text-number: 78px;
+  --wb-text-h1: 32px;
+  --wb-text-h2: 24px;
+  --wb-text-body: 16px;
+  --wb-text-secondary: 14px;
+  --wb-text-label: 12.5px; /* nothing smaller than 12px anywhere */
+  --wb-text-button: 16px;
+
+  /* Space, shape, touch */
+  --wb-space-1: 4px;
+  --wb-space-2: 8px;
+  --wb-space-3: 12px;
+  --wb-space-4: 16px;
+  --wb-space-5: 24px;
+  --wb-space-6: 32px;
+  --wb-radius-s: 10px;
+  --wb-radius-m: 16px;
+  --wb-radius-l: 24px;
+  --wb-touch-min: 48px;
+
+  /* Motion */
+  --wb-ease-out: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --wb-dur-fast: 180ms;
+  --wb-dur-base: 350ms;
+  --wb-dur-slow: 750ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --wb-dur-fast: 1ms;
+    --wb-dur-base: 1ms;
+    --wb-dur-slow: 1ms;
+  }
+}

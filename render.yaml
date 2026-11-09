@@ -1,0 +1,19 @@
+# Render blueprint for the Python API. Connect the GitHub repo in Render, choose
+# "New > Blueprint", and Render deploys apps/api on every push to main.
+services:
+  - type: web
+    name: waterbuddy-api
+    runtime: python
+    rootDir: apps/api
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: WB_ENVIRONMENT
+        value: production
+      - key: WB_ALLOWED_ORIGINS
+        sync: false

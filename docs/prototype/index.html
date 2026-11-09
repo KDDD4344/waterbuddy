@@ -1,0 +1,347 @@
+<title>WaterBuddy Creative Reset</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible+Mono:wght@500;600&family=Kalam:wght@400;700&display=swap">
+<style>
+/* Layout: a long review document; three live 3D line-ups are the bold moments, everything else stays quiet and editorial. */
+:root{
+  --bg:#F2EFE7; --surface:#FAF8F2; --ink:#13303A; --muted:#4A5F66; --rule:#DCD6C8; --deep:#0E3A49; --accent:#9E4430; --tint:#E6EFEA; --pick:#DDEFEB;
+  --f-num:"Young Serif", Georgia, serif; --f-body:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",Arial,sans-serif;
+  --f-mono:"Atkinson Hyperlegible Mono",ui-monospace,Menlo,monospace; --f-hand:"Kalam",cursive;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0B1D24; --surface:#10262E; --ink:#E4EEEB; --muted:#9DB4B3; --rule:#21404A; --deep:#7FCBC2; --accent:#F0957A; --tint:#132F37; --pick:#163B3E; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#0B1D24; --surface:#10262E; --ink:#E4EEEB; --muted:#9DB4B3; --rule:#21404A; --deep:#7FCBC2; --accent:#F0957A; --tint:#132F37; --pick:#163B3E; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0}
+a{color:var(--deep);text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:3px solid #C89B3C;outline-offset:2px;border-radius:4px}
+.wrap{max-width:1100px;margin:0 auto;padding-block:48px 96px}
+.mono{font-family:var(--f-mono);font-weight:600;font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-num);font-weight:400;font-size:clamp(40px,6.2vw,72px);line-height:1;letter-spacing:-.02em;margin:14px 0 18px;text-wrap:balance}
+h2{font-family:var(--f-num);font-weight:400;font-size:clamp(28px,3.6vw,40px);line-height:1.08;margin:8px 0 14px;text-wrap:balance}
+h3{font-family:var(--f-num);font-weight:400;font-size:26px;line-height:1.12;margin:0 0 6px;text-wrap:balance}
+p{margin:0 0 14px;max-width:68ch}
+ul,ol{margin:0 0 14px;padding-left:22px;max-width:68ch}
+li{margin-bottom:6px}
+.lede{font-size:20px;max-width:62ch}
+.cta{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 22px;border-radius:26px;background:var(--deep);color:var(--bg);text-decoration:none;font-weight:700;font-size:17px;margin-top:8px}
+.cta:hover{filter:brightness(1.08)}
+section{padding-top:64px;border-top:1px solid var(--rule);margin-top:64px}
+header + section{margin-top:40px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.box{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:20px 22px;min-width:0}
+.box p:last-child,.box ul:last-child{margin-bottom:0}
+.concept{margin-top:40px}
+.concept .head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.stage{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--rule);background:#9cc6c2}
+.scroller{overflow-x:auto}
+.stage canvas{display:block;width:100%;min-width:680px;aspect-ratio:2.5/1;cursor:grab;touch-action:pan-y}
+.labels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));min-width:680px;background:var(--surface);border-top:1px solid var(--rule)}
+.labels span{padding:10px 14px;font-family:var(--f-mono);font-size:12.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:center}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.controls button{min-height:44px;padding:0 16px;border-radius:22px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-weight:700;font-size:14.5px;cursor:pointer}
+.controls button.primary{background:var(--ink);color:var(--bg)}
+.study{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 26px;margin-top:16px}
+.study div{min-width:0}
+.study b{display:block;font-family:var(--f-mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+.study p{font-size:15.5px;margin:0}
+.risk{border-left:3px solid var(--accent);padding-left:14px}
+.pick{background:var(--pick);border:1px solid var(--rule);border-radius:18px;padding:24px 26px;margin-top:44px}
+.pick h3{font-size:30px}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:14px;background:var(--surface);margin:18px 0}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:15px;line-height:1.45}
+th,td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--rule)}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--tint)}
+td:first-child{font-weight:700}
+.hand{font-family:var(--f-hand);font-size:20px;line-height:1.3}
+.note{font-size:14.5px;color:var(--muted)}
+.refs{font-size:14.5px;columns:2 320px;column-gap:32px;padding-left:20px}
+.refs li{break-inside:avoid}
+.nogl{padding:28px;text-align:center;color:#13303A}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mono">WaterBuddy · Creative direction reset · for review</div>
+    <h1>A tidepool you want to visit</h1>
+    <p class="lede">The last round organised the product well, but it looked like a well-made form. This round starts again from the experience: a living underwater place, a character worth checking on, and water that behaves like water. Everything below is running live in your browser, not drawn.</p>
+    <a class="cta" href="./prototype.html">Open the working prototype <span aria-hidden="true">→</span></a>
+    <p class="note" style="margin-top:12px">The prototype runs the eight moments you asked for: opening, idle, logging 250 ml with real liquid, Buddy reacting, progress changing, a field task, a postcard, and the Waterverse.</p>
+  </header>
+
+  <section id="buddy">
+    <div class="mono">01 · Buddy</div>
+    <h2>Three new characters, each tied to a real piece of water biology</h2>
+    <p>I dropped the tardigrade and every droplet idea. Each concept below has a different silhouette, material, personality and way of moving, and each is built in real-time 3D so you can judge it in motion. Every line-up shows the same character in four states, all animating at once. Drag to turn them, or press a button to make them react.</p>
+
+    <article class="concept" id="cPip">
+      <div class="head">
+        <div><div class="mono">Concept A</div><h3>Pip, a hermit crab whose shell is a glass bottle</h3></div>
+        <div class="controls"><button class="primary" data-act="pour" data-c="pip">Pour water</button><button data-act="dance" data-c="pip">Dance</button></div>
+      </div>
+      <div class="stage"><div class="scroller"><canvas id="cvPip" aria-label="Pip in four states: idle, happy, surprised and sleepy. A coral hermit crab peeks out of the neck of a tilted glass bottle that holds water."></canvas><div class="labels"><span>Idle</span><span>Happy</span><span>Surprised</span><span>Sleepy</span></div></div></div>
+      <div class="study">
+        <div><b>Silhouette</b><p>A tilted bottle with a crab in the neck: periscope eye stalks and one big claw, one small. Readable at 24 px.</p></div>
+        <div><b>Material</b><p>Clear glass with real liquid inside, a glossy coral shell with a soft sheen, a cork, a paper scroll.</p></div>
+        <div><b>Personality</b><p>Shy, curious, a bit dramatic. Hides when startled, peeks back out, shows off with the big claw.</p></div>
+        <div><b>Idle</b><p>Each eye looks around on its own. Blinks, antennae sway, the claw clicks, and now and then Pip taps the glass, which ripples the water inside.</p></div>
+        <div><b>Reactions</b><p>Ducks into the neck while you pour, pops out cheering. Dances at halfway. At the goal, climbs on top and corks the bottle.</p></div>
+        <div><b>True to life</b><p>Land hermit crabs really carry water inside their shells to keep their gills wet.</p></div>
+      </div>
+      <p class="risk" style="margin-top:16px"><b>Risk:</b> real hermit crabs can get trapped in plastic litter. The story must make the bottle a cherished, hand-blown glass home that Pip chose and polishes, never rubbish.</p>
+    </article>
+
+    <article class="concept" id="cMoss">
+      <div class="head">
+        <div><div class="mono">Concept B</div><h3>Moss, a marimo lake ball that floats when it's full</h3></div>
+        <div class="controls"><button class="primary" data-act="pour" data-c="moss">Pour water</button><button data-act="dance" data-c="moss">Roll</button></div>
+      </div>
+      <div class="stage"><div class="scroller"><canvas id="cvMoss" aria-label="Moss in four states: a fuzzy green moss ball with two bead eyes and small air bubbles clinging to it."></canvas><div class="labels"><span>Idle</span><span>Happy</span><span>Surprised</span><span>Sleepy</span></div></div></div>
+      <div class="study">
+        <div><b>Silhouette</b><p>A perfect fuzzy sphere, two bead eyes and a ring of bubbles. Recognised by its material, not its shape.</p></div>
+        <div><b>Material</b><p>Real-time fur from 18 stacked shells, plus glassy bubbles.</p></div>
+        <div><b>Personality</b><p>Serene, soft and quietly funny. Never in a hurry.</p></div>
+        <div><b>Idle</b><p>Slow roll, breathing bob, fur that sways like it's underwater, sleepy blinks.</p></div>
+        <div><b>Reactions</b><p>The fur ripples, bubbles collect as you drink, and Moss floats higher. At the goal it rises to the surface.</p></div>
+        <div><b>True to life</b><p>Real marimo rise in daylight on oxygen bubbles and sink at night, on a daily rhythm.</p></div>
+      </div>
+      <p class="risk" style="margin-top:16px"><b>Risk:</b> a ball is the weakest silhouette, the cute-blob space is crowded, and Moss can't naturally carry postcards or travel.</p>
+    </article>
+
+    <article class="concept" id="cFold">
+      <div class="head">
+        <div><div class="mono">Concept C</div><h3>Fold, an origami boat-bird folded from a postcard</h3></div>
+        <div class="controls"><button class="primary" data-act="pour" data-c="fold">Splash it</button><button data-act="dance" data-c="fold">Spin</button></div>
+      </div>
+      <div class="stage"><div class="scroller"><canvas id="cvFold" aria-label="Fold in four states: a paper boat with a crane's neck and folding wings."></canvas><div class="labels"><span>Idle</span><span>Happy</span><span>Surprised</span><span>Sleepy</span></div></div></div>
+      <div class="study">
+        <div><b>Silhouette</b><p>A paper boat with a crane's neck and folding wings. All sharp angles, unlike every round mascot.</p></div>
+        <div><b>Material</b><p>Folded paper with flat-shaded facets and a printed inside.</p></div>
+        <div><b>Personality</b><p>A theatrical show-off, slightly vain about its folds.</p></div>
+        <div><b>Idle</b><p>Bobs as if afloat, folds its wings like breathing, tilts its head at you.</p></div>
+        <div><b>Reactions</b><p>Flaps and hops, spins, tucks its neck to sleep. Later it could unfold flat into the day's postcard.</p></div>
+        <div><b>Why it's interesting</b><p>Folding is an ownable motion vocabulary, and it links straight to the journal and postcards.</p></div>
+      </div>
+      <p class="risk" style="margin-top:16px"><b>Risk:</b> almost no face, so emotion is weaker; paper and water is a mild contradiction; good folding animation is expensive to author.</p>
+    </article>
+
+    <div class="pick">
+      <div class="mono">Recommendation</div>
+      <h3>Go with Pip</h3>
+      <ul>
+        <li><b>The character is the interface.</b> Pip's home holds today's water, so the most important number on the screen is also the most delightful object on it.</li>
+        <li><b>Every product moment already has an action.</b> Pour: he ducks and the bottle fills. Goal: he corks it. Night: he sails on it. Morning: a message in the bottle. Postcard: he unrolls it.</li>
+        <li><b>Expressive without words.</b> Independent eye stalks, a lopsided claw and hiding say a lot. Pip never needs a speech bubble.</li>
+        <li><b>Right for every age.</b> A cute crab for kids. Introvert humour and real glass-and-liquid craft for teens and adults.</li>
+      </ul>
+      <p style="margin:0">Keep the other two as world material: <b>Moss</b> lives in Loktak Lake as a Waterverse resident, and <b>Fold</b>'s origami language becomes how postcards and the journal open and close.</p>
+    </div>
+  </section>
+
+  <section id="today">
+    <div class="mono">02 · Today</div>
+    <h2>Today becomes a living tidepool</h2>
+    <div class="grid2">
+      <div class="box">
+        <h3>What you see</h3>
+        <ul>
+          <li>Depth-graded water, brighter near the surface, with drifting light shafts.</li>
+          <li>Animated caustics dancing on the sand, swaying seagrass, drifting motes and a small school of fish.</li>
+          <li>Pip's bottle as the centrepiece, holding today's water. The level is real liquid that sloshes and settles.</li>
+          <li>Gentle parallax as you move your finger or cursor.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>What stays readable</h3>
+        <ul>
+          <li>The number, the goal and the buttons are ordinary page elements over the scene, so screen readers, text scaling and translation all work.</li>
+          <li>A soft paper scrim sits behind the number; at night the text turns light.</li>
+          <li>Logging is always one tap. The animation never blocks the next log, and Undo is right there.</li>
+          <li>If 3D can't run, the same screen works as a flat page.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="world">
+    <div class="mono">03 · The Waterverse</div>
+    <h2>A small explorable archipelago, not a map</h2>
+    <p>The Waterverse is a live 3D sea of six real places on the Northeast route, each a handmade island with its landmark: Loktak's floating rings, Umngot's boat floating over clear water, Majuli's river channels, Tsomgo's snowy peak. You drag to look around and tap an island to fly to it.</p>
+    <div class="grid2">
+      <div class="box"><h3>Progress you can see</h3><p>Uncharted islands sit under drifting fog and in grey. When Pip's postcard arrives, the fog dissolves, colour floods back, birds start circling, the route inks in rust and Pip's little bottle sails to the new island.</p></div>
+      <div class="box"><h3>Where it grows</h3><p>Later chapters sit deeper: coasts and mangroves, reefs and islands, then waters of the world. Each new chapter is a new region of the same sea, so the world gets bigger the longer you stay.</p></div>
+    </div>
+  </section>
+
+  <section id="motion">
+    <div class="mono">04 · Motion language</div>
+    <h2>Every movement explains something</h2>
+    <p>The rule: motion shows cause and effect in the water. Nothing loops just to look busy, and every moment has a reduced-motion version that keeps the meaning.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Moment</th><th>What moves</th><th>Why</th><th>Reduced motion</th></tr></thead>
+      <tbody>
+        <tr><td>Opening</td><td>The camera sinks from the bright surface into the tidepool over about 3 s; Pip peeks out and waves; the numbers rise in.</td><td>Sets the place and mood before any data.</td><td>Paper splash fades straight to the scene.</td></tr>
+        <tr><td>Idle</td><td>Eye saccades, blinks, antennae, claw clicks, glass taps; seagrass, fish, caustics.</td><td>The world is alive even when you do nothing.</td><td>Pip stays alive; camera parallax stops.</td></tr>
+        <tr><td>Pouring</td><td>A stream falls into the neck, the level springs up and overshoots, the surface sloshes, splash and bubbles. Optional sound rises in pitch as the bottle fills.</td><td>Logging should feel physical; the slosh shows how much went in.</td><td>The level eases up in 0.2 s, with no stream or splash.</td></tr>
+        <tr><td>Reaction</td><td>Pip ducks during the pour, then pops out cheering. At 25 / 50 / 75 % a stamp lands and he cheers or dances.</td><td>Rewards the action, not the volume.</td><td>Same states, no hops.</td></tr>
+        <tr><td>Field task</td><td>A sheet slides up, the sentence updates as you choose, a leaf sticker slaps down and flies into the journal, and a ring of bubbles rises.</td><td>Completion feels earned and is filed where you'll find it.</td><td>The sticker appears in place.</td></tr>
+        <tr><td>Goal and night</td><td>Pip climbs on top and corks the bottle. The water darkens to night, and the bottle floats up and away with Pip aboard.</td><td>Closes the day. Reminders stop.</td><td>Crossfade to night.</td></tr>
+        <tr><td>Postcard</td><td>The bottle settles with a puff of sand. Tap it: the cork pops, the scroll rises, the card unfolds.</td><td>Opening real mail is the reward for coming back in the morning.</td><td>The card appears already open.</td></tr>
+        <tr><td>Waterverse</td><td>A water wipe between screens, camera flights to islands, fog dissolving, colour returning, birds, Pip's bottle sailing along the route.</td><td>Progress shows up as a changed world, not a number.</td><td>Instant cuts; the fog still clears.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="tech">
+    <div class="mono">05 · Technical approach</div>
+    <h2>Use the simplest tool that reaches the bar</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Need</th><th>Choice</th><th>Why, and the trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>3D rendering</td><td>three.js, WebGL 2 today</td><td>The most common web 3D library, with the biggest ecosystem. WebGPU now ships in Chrome and Safari 26, but Firefox on Android still lacks it, so WebGL 2 is the safe baseline. three.js's WebGPU renderer can switch on later and falls back to WebGL 2.</td></tr>
+        <tr><td>App framework</td><td>React + React Three Fiber</td><td>The 3D scene becomes components next to the UI. A thin layer over three.js, so the shaders here carry over unchanged.</td></tr>
+        <tr><td>Liquid</td><td>Custom shader, not a fluid simulation</td><td>A moving cut-off plane, a back-face "cap" for the surface, and wobble from a spring. The standard games technique: cheap, stable and art-directable. A real fluid simulation would cost far more battery for a worse look.</td></tr>
+        <tr><td>Character</td><td>Blender → glTF (meshopt + KTX2 textures), with procedural animation layered on top</td><td>Authored clips for big actions (hide, cork, sail); code-driven eyes, blinks and look-at so Pip reacts to you live. The prototype builds Pip from primitives to prove the motion before modelling.</td></tr>
+        <tr><td>Water and world</td><td>Shaders: caustics, toon ocean with depth bands and shoreline foam, noise-based fog</td><td>No texture downloads, so it looks crisp at any size. Fog reveal is a single number per island.</td></tr>
+        <tr><td>2D micro-animation</td><td>Rive for stamps, stickers and buttons</td><td>State machines suit interactive UI better than Lottie's playback. CSS covers the rest.</td></tr>
+        <tr><td>Physics</td><td>Springs and simple particles, no physics engine</td><td>Everything here is a damped spring or a short-lived particle. Small and predictable.</td></tr>
+        <tr><td>PWA</td><td>The service worker caches the 3D bundle and models after first visit</td><td>Logging works offline. The page shows the numbers first, then loads 3D, so 3D never delays a log.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="grid2">
+      <div class="box">
+        <h3>Performance budget (proposed)</h3>
+        <ul>
+          <li>60 fps on a 2022 mid-range Android phone; drop to device pixel ratio 1 automatically when frames run slow (the prototype already does this).</li>
+          <li>Today scene: under 80 draw calls and 150k triangles; Pip's glTF model under 400 KB.</li>
+          <li>Throttle to 30 fps after 10 s with no input; stop rendering when the app is in the background.</li>
+          <li>No shadows from lights; soft contact shadows are baked into the sand shader.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Accessibility and fallbacks</h3>
+        <ul>
+          <li>Every control is an ordinary button, never inside the 3D canvas; Waterverse islands are also a list of buttons.</li>
+          <li>Logs, milestones and postcards are announced to screen readers.</li>
+          <li>Reduced motion follows the system setting, with an in-app switch.</li>
+          <li>No WebGL, or a very slow device: the same app as a flat illustrated layout.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="compare">
+    <div class="mono">06 · Why this is better</div>
+    <h2>Last round against this one</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Area</th><th>Field Journal, Flooded v2</th><th>Reset</th></tr></thead>
+      <tbody>
+        <tr><td>Buddy</td><td>A flat tardigrade drawing with a cap; reactions were a line of text.</td><td>A 3D character whose home is the progress bar, with eyes, claws, hiding and dancing.</td></tr>
+        <tr><td>Today</td><td>A flat colour fill behind numbers.</td><td>A living tidepool with depth, light, caustics, plants and fish.</td></tr>
+        <tr><td>Logging</td><td>The height of a box changed.</td><td>Water pours, lands, sloshes, splashes and bubbles; Pip ducks and pops back out.</td></tr>
+        <tr><td>Waterverse</td><td>A dark chart with dots.</td><td>An explorable 3D sea where fog lifts, colour returns and life appears.</td></tr>
+        <tr><td>Postcard</td><td>A 2D card flip.</td><td>The bottle sails at night and returns with a message that unrolls into a card.</td></tr>
+        <tr><td>Reason to open it</td><td>To check a number.</td><td>To see what Pip is up to and what washed up overnight.</td></tr>
+        <tr><td>Kept from before</td><td colspan="2">The safety rules, never rewarding drinking past the goal, the postcard loop, the type and paper palette for the journal, and the accessibility spec.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Honest limits of the prototype: Pip is built from primitives, not a finished model. Sound is synthesised placeholder audio. I have not tested it on a range of real phones.</p>
+  </section>
+
+  <section id="research">
+    <div class="mono">Research</div>
+    <h2>What I read</h2>
+    <p>You asked me not to fake research. I couldn't view images or videos, only written sources. These shaped the decisions above:</p>
+    <ul>
+      <li><b>ABZÛ (Giant Squid)</b>: interviews describe light shafts and how water takes the colour of the light passing through it, with reds fading with depth. That is why Today grades colour by depth and leans on light shafts.</li>
+      <li><b>Astro Bot (Team Asobi)</b>: a compact frame, a low centre of gravity and expressive, slightly clumsy animation carry the character. Pip is built the same way.</li>
+      <li><b>Liquid-in-a-bottle shaders</b>: a moving cut-off plane, a back-face cap and wobble from velocity; tilted bottles are the known hard case. That is exactly what Pip's bottle uses.</li>
+      <li><b>Shell texturing</b> (Lengyel et al. 2001, NVIDIA): the standard real-time fur technique, used for Moss.</li>
+      <li><b>Toon water</b> tutorials: depth-banded colour and foam where objects meet the water, used for the Waterverse sea.</li>
+    </ul>
+    <ol class="refs">
+      <li><a href="https://80.lv/articles/interview-with-the-creative-director-of-abzu/">Interview with the creative director of ABZÛ, 80.lv</a></li>
+      <li><a href="https://gdcvault.com/play/1024409/Creating-the-Art-of-ABZ">Creating the Art of ABZÛ, GDC Vault</a></li>
+      <li><a href="https://blog.playstation.com/2019/01/24/astro-bot-rescue-mission-inside-the-art-and-animation-of-japan-studios-ps-vr-hit/">Inside the art and animation of Astro Bot, PlayStation Blog</a></li>
+      <li><a href="https://www.pushsquare.com/features/interview-the-making-of-astro-bot-the-ps5s-next-great-exclusive">The making of Astro Bot, Push Square</a></li>
+      <li><a href="https://80.lv/articles/simulating-liquids-in-a-bottle-with-a-shader/">Simulating liquids in a bottle with a shader, 80.lv</a></li>
+      <li><a href="https://fr4ct1ons.github.io/vfx/unity-bottled-liquid">Bottled liquid experiment</a></li>
+      <li><a href="https://developer.download.nvidia.com/SDK/10.5/direct3d/Source/Fur/doc/FurShellsAndFins.pdf">Fur with shells and fins, NVIDIA</a></li>
+      <li><a href="https://www.hhoppe.com/fur.pdf">Real-time fur over arbitrary surfaces, Lengyel et al.</a></li>
+      <li><a href="https://code.tutsplus.com/creating-toon-water-for-the-web-part-1--cms-30447t">Creating toon water for the web, Envato Tuts+</a></li>
+      <li><a href="https://web.dev/blog/webgpu-supported-major-browsers">WebGPU is now supported in major browsers, web.dev</a></li>
+      <li><a href="https://threejs.org/manual/en/webgpurenderer">WebGPURenderer, three.js manual</a></li>
+      <li><a href="https://callstack.com/blog/lottie-vs-rive-optimizing-mobile-app-animation">Lottie vs Rive, Callstack</a></li>
+      <li><a href="https://nationalzoo.si.edu/animals/land-hermit-crab">Land hermit crab, Smithsonian's National Zoo</a></li>
+      <li><a href="https://flore.unifi.it/handle/2158/1130930">Water in the shell of Coenobita hermit crabs, Becchi et al.</a></li>
+      <li><a href="https://www.bristol.ac.uk/news/2018/august/algae-balls-float-and-sink.html">Why marimo float and sink, University of Bristol</a></li>
+    </ol>
+  </section>
+</div>
+
+<script type="module">
+import { THREE, makeRenderer, fit, buildPip, buildMoss, buildFold, studioSet, studioLights, blobShadow, reducedMotionPreferred } from './shared.js';
+const EXPR = ['idle', 'happy', 'surprised', 'sleepy'];
+const lineups = [];
+function makeLineup(canvasId, kind) {
+  const canvas = document.getElementById(canvasId);
+  let renderer;
+  try { renderer = makeRenderer(canvas, { maxDpr: 1.75 }); } catch (e) { canvas.replaceWith(Object.assign(document.createElement('div'), { className: 'nogl', textContent: '3D is not available in this browser.' })); return; }
+  const scene = new THREE.Scene();
+  studioSet(scene); studioLights(scene);
+  scene.fog = new THREE.Fog(0x9cc6c2, 18, 40);
+  const spacing = kind === 'pip' ? 3.7 : kind === 'moss' ? 3.3 : 3.9;
+  const chars = EXPR.map((e, i) => {
+    const c = kind === 'pip' ? buildPip({ fill: 0.55 }) : kind === 'moss' ? buildMoss({ fill: 0.5 }) : buildFold();
+    const holder = new THREE.Group(); holder.position.x = (i - 1.5) * spacing; holder.add(c.root);
+    if (kind === 'pip') { c.root.scale.setScalar(0.9); c.root.position.x = -0.15; }
+    if (kind === 'fold') { c.root.scale.setScalar(0.95); holder.rotation.y = -0.35; const pool = new THREE.Mesh(new THREE.CircleGeometry(1.6, 40), new THREE.MeshStandardMaterial({ color: 0x8fcfc6, roughness: 0.2 })); pool.rotation.x = -Math.PI / 2; pool.position.y = 0.012; holder.add(pool); }
+    holder.add(blobShadow(kind === 'pip' ? 1.4 : 1.1, 0.25));
+    c.setExpression(e); scene.add(holder);
+    return { c, holder, baseYaw: holder.rotation.y, fill: 0.55 };
+  });
+  const camera = new THREE.PerspectiveCamera(26, 2.5, 0.1, 120);
+  const camY = kind === 'moss' ? 2.8 : 3.2, lookY = kind === 'moss' ? 1.15 : 1.0;
+  camera.position.set(0, camY, kind === 'moss' ? 15.5 : 14.2); camera.lookAt(0, lookY, 0);
+  const L = { canvas, renderer, scene, camera, chars, kind, visible: false, yaw: 0, drag: null };
+  new IntersectionObserver((es) => es.forEach((en) => { L.visible = en.isIntersecting; }), { rootMargin: '100px' }).observe(canvas);
+  canvas.addEventListener('pointerdown', (e) => { L.drag = { x: e.clientX, yaw: L.yaw }; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; });
+  canvas.addEventListener('pointermove', (e) => { if (L.drag) L.yaw = L.drag.yaw + (e.clientX - L.drag.x) * 0.01; });
+  const end = () => { L.drag = null; canvas.style.cursor = 'grab'; };
+  canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+  lineups.push(L);
+  return L;
+}
+const byKind = {};
+[['cvPip', 'pip'], ['cvMoss', 'moss'], ['cvFold', 'fold']].forEach(([id, k]) => { const L = makeLineup(id, k); if (L) byKind[k] = L; });
+
+document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
+  const L = byKind[b.dataset.c]; if (!L) return;
+  L.chars.forEach((ch, i) => {
+    if (b.dataset.act === 'pour') {
+      if (L.kind === 'pip') { ch.c.trigger('hide'); setTimeout(() => { ch.fill = ch.fill >= 0.95 ? 0.2 : Math.min(1, ch.fill + 0.2); ch.c.setFill(ch.fill); ch.c.impulse(1.1, 0.6); }, 350); setTimeout(() => ch.c.trigger('cheer'), 1100); }
+      else { ch.c.trigger('pour', 1.3); ch.fill = ch.fill >= 0.95 ? 0.2 : Math.min(1, ch.fill + 0.2); ch.c.setFill(ch.fill); }
+    } else ch.c.trigger('dance', 2.2);
+  });
+}));
+
+const reduce = reducedMotionPreferred();
+let last = performance.now(), t = 0;
+function loop(now) { requestAnimationFrame(loop); tick(now); }
+window.__idx = { step(n = 60) { for (let i = 0; i < n; i++) tick(last + 16.7, true); }, lineups };
+function tick(now, force) {
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = Math.max(last, now); t += dt;
+  if (document.hidden && !force) return;
+  lineups.forEach((L) => {
+    if (!L.visible && !force) return;
+    fit(L.renderer, L.camera, L.canvas);
+    L.chars.forEach((ch, i) => { ch.holder.rotation.y = ch.baseYaw + L.yaw + (reduce ? 0 : Math.sin(t * 0.3 + i) * 0.12); ch.c.update(dt, t + i * 1.7); });
+    L.renderer.render(L.scene, L.camera);
+  });
+}
+requestAnimationFrame(loop);
+</script>

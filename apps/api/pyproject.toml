@@ -1,0 +1,28 @@
+[project]
+name = "waterbuddy-api"
+version = "0.0.1"
+description = "WaterBuddy server: reminders and web push now, optional sync later."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.32",
+  "pydantic-settings>=2.6",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "httpx>=0.28",
+  "ruff>=0.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM"]
