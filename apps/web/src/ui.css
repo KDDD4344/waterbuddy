@@ -902,7 +902,8 @@ select {
 }
 
 .tab {
-  min-width: 88px;
+  min-width: 72px;
+  flex: 1;
   min-height: 56px;
   border: 0;
   background: transparent;
@@ -1663,4 +1664,200 @@ textarea,
 [data-motion='reduce'] .postcard-inner,
 [data-motion='reduce'] .postcard-face {
   transition: none;
+}
+
+/* The Waterverse (Phase 5) */
+.atlas {
+  padding-top: 0;
+}
+
+.atlas-stage {
+  position: relative;
+  margin-left: calc(-1 * max(var(--wb-space-4), env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(var(--wb-space-4), env(safe-area-inset-right, 0px)));
+  height: clamp(420px, 62dvh, 600px);
+  overflow: hidden;
+  background: #6fb7b0;
+}
+
+@media (min-width: 521px) {
+  .atlas-stage {
+    border-radius: 0 0 var(--wb-radius-l) var(--wb-radius-l);
+  }
+}
+
+.atlas-chart,
+.atlas-3d,
+.waterverse-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.atlas-chart {
+  transition: opacity var(--wb-dur-slow) var(--wb-ease-out);
+}
+
+.atlas-chart.hidden-under {
+  opacity: 0;
+}
+
+.atlas-3d {
+  opacity: 0;
+  transition: opacity 0.8s var(--wb-ease-out);
+}
+
+.atlas-3d.ready {
+  opacity: 1;
+}
+
+.waterverse-canvas canvas {
+  display: block;
+  touch-action: none;
+}
+
+.atlas-top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: max(var(--wb-space-5), env(safe-area-inset-top, 0px)) max(var(--wb-space-4), env(safe-area-inset-right, 0px))
+    var(--wb-space-6) max(var(--wb-space-4), env(safe-area-inset-left, 0px));
+  background: linear-gradient(rgba(242, 239, 231, 0.85), rgba(242, 239, 231, 0.5) 60%, rgba(242, 239, 231, 0));
+  pointer-events: none;
+}
+
+.atlas-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.atlas-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(251, 247, 236, 0.94);
+  box-shadow: 0 2px 6px rgba(19, 48, 58, 0.18);
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity var(--wb-dur-fast);
+  will-change: transform;
+}
+
+.atlas-label[data-status='fog'],
+.atlas-label[data-status='next'] {
+  min-width: 28px;
+  text-align: center;
+  font-family: var(--wb-font-mono);
+  background: rgba(251, 247, 236, 0.7);
+  color: var(--wb-ink-muted);
+}
+
+.island-card {
+  position: absolute;
+  left: var(--wb-space-3);
+  right: var(--wb-space-3);
+  bottom: var(--wb-space-3);
+  z-index: 3;
+  padding: var(--wb-space-3) var(--wb-space-4) var(--wb-space-4);
+  border-radius: var(--wb-radius-m);
+  background: var(--wb-card);
+  box-shadow: 0 10px 28px rgba(19, 48, 58, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-2);
+  animation: sheet-up var(--wb-dur-base) var(--wb-ease-out);
+}
+
+.island-card h2 {
+  margin: 0;
+}
+
+.island-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.places {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-2);
+}
+
+.place-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-1);
+}
+
+.place {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-3);
+  padding: var(--wb-space-2) var(--wb-space-3);
+  border: 1px solid var(--wb-rule);
+  border-radius: var(--wb-radius-m);
+  background: var(--wb-card);
+  color: var(--wb-ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.place[aria-current='true'] {
+  border-color: var(--wb-deep);
+  box-shadow: inset 0 0 0 1px var(--wb-deep);
+}
+
+.place-no {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--wb-font-display);
+  font-size: 18px;
+  background: var(--wb-deep);
+  color: #fff;
+}
+
+.place[data-status='fog'] .place-no,
+.place[data-status='next'] .place-no {
+  background: var(--wb-rule);
+  color: var(--wb-ink-muted);
+}
+
+.place-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.place-name {
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .island-card {
+    animation: none;
+  }
+}
+
+[data-motion='reduce'] .island-card {
+  animation: none;
 }

@@ -184,3 +184,30 @@ describe('Phase 4 night voyage and postcards', () => {
     expect(await within(stat).findByText(/Bottle full and corked/)).toBeInTheDocument();
   });
 });
+
+describe('Phase 5 the Waterverse', () => {
+  it('lists every place, clear or in fog, and opens a clear island\'s postcard without 3D', async () => {
+    const y = new Date();
+    y.setDate(y.getDate() - 2);
+    await completeOnboarding(
+      { ageBand: '18-64', goalMl: 2000, goalSource: 'suggested', units: 'ml', cupMl: 240, parentConfirmed: false, vessels: [{ name: 'Tumbler', ml: 250 }] },
+      y
+    );
+    await addLog(2000, null, new Date(y.getTime() + 60 * 60 * 1000));
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole('button', { name: 'Atlas' }));
+    expect(await screen.findByRole('heading', { name: 'The Waterverse' })).toBeInTheDocument();
+    const list = screen.getByRole('list');
+    const items = within(list).getAllByRole('button');
+    expect(items).toHaveLength(6);
+    expect(items[0]).toHaveTextContent('Loktak Lake');
+    expect(items[1]).toHaveTextContent('Next on the route');
+    expect(items[2]).toHaveTextContent('Still in the fog');
+    expect(screen.getByText(/1 of 6 out of the fog/)).toBeInTheDocument();
+
+    await user.click(items[0]!);
+    await user.click(screen.getByRole('button', { name: 'Read the postcard' }));
+    expect(within(await screen.findByRole('dialog')).getByRole('heading', { name: 'Postcard 1 of 6' })).toBeInTheDocument();
+  });
+});

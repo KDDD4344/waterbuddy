@@ -113,8 +113,8 @@ export function You({ profile }: { profile: Profile }) {
         <h2 id="g-pip">Pip and the tidepool</h2>
         <label className="setting">
           <span>
-            <span className="setting-label">Animated tidepool</span>
-            <span className="small muted block">Turn off to save battery. Logging works the same either way.</span>
+            <span className="setting-label">3D scenes</span>
+            <span className="small muted block">The tidepool and the Waterverse. Turn off to save battery; everything still works.</span>
           </span>
           <input
             type="checkbox"

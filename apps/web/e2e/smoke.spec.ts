@@ -171,3 +171,78 @@ test('after last call there is no countdown, only "We’ll sail tomorrow"', asyn
   await expect(stat(page)).toContainText('We’ll sail tomorrow');
   await expect(stat(page)).not.toContainText('glasses to go');
 });
+
+test('the Waterverse: Pip sails to new islands, the fog lifts, and every place is reachable from the list', async ({ page }, info) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  const hasWebGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl'));
+
+  // Two goal days, then the next morning.
+  await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
+  await onboard(page);
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('Bottle full and corked');
+  await page.clock.setFixedTime(new Date('2026-11-11T10:00:00'));
+  await page.reload();
+  await expect(page.getByRole('button', { name: /message washed up/ })).toBeVisible();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('Bottle full and corked');
+  await page.clock.setFixedTime(new Date('2026-11-12T08:00:00'));
+  await page.reload();
+  await expect(page.getByRole('button', { name: /2 messages washed up/ })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Atlas' }).click();
+  await expect(page.getByRole('heading', { name: 'The Waterverse' })).toBeVisible();
+  await expect(page.getByText('2 of 6 out of the fog')).toBeVisible();
+
+  if (hasWebGL) {
+    await expect(page.locator('.atlas-3d.ready')).toBeVisible({ timeout: 20_000 });
+    await page.waitForTimeout(2500);
+    await page.screenshot({ path: info.outputPath('waterverse-sailing.png') });
+    // two legs and two fog lifts
+    await page.waitForTimeout(16_000);
+    await page.screenshot({ path: info.outputPath('waterverse-after.png') });
+
+    // drag pans the map
+    const label = page.locator('.atlas-label').first();
+    const before = await label.evaluate((el) => (el as HTMLElement).style.transform);
+    const box = (await page.locator('.waterverse-canvas canvas').boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.6);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 80, box.y + box.height * 0.6 + 40, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(600);
+    expect(await label.evaluate((el) => (el as HTMLElement).style.transform)).not.toBe(before);
+  }
+
+  // The list reaches every place, with or without 3D.
+  const places = page.getByRole('list').filter({ has: page.locator('.place') }).getByRole('button');
+  await expect(places).toHaveCount(6);
+  await places.nth(1).click();
+  await expect(page.locator('.island-card')).toContainText('Umngot River');
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: info.outputPath('waterverse-island.png') });
+  await page.getByRole('button', { name: 'Read the postcard' }).click();
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Postcard 2 of 6' })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Done' }).click();
+  await places.nth(4).click();
+  await expect(page.locator('.island-card')).toContainText('Still in the fog');
+
+  // Coming back later does not replay the voyage.
+  await page.reload();
+  await page.getByRole('button', { name: 'Atlas' }).click();
+  expect(await page.evaluate(async () => {
+    const req = indexedDB.open('waterbuddy');
+    const db: IDBDatabase = await new Promise((r) => (req.onsuccess = () => r(req.result)));
+    const p = await new Promise<{ atlasSeen?: number }>((r) => {
+      const g = db.transaction('profile').objectStore('profile').get('me');
+      g.onsuccess = () => r(g.result);
+    });
+    return p.atlasSeen ?? 0;
+  })).toBe(hasWebGL ? 2 : 2);
+  expect(errors).toEqual([]);
+});

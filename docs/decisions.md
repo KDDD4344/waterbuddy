@@ -34,3 +34,8 @@ Each decision records what we chose, why, and what would make us revisit it. Add
 **Why:** safety rules 1, 3 and 9: no reward for drinking more, no late-night nudges, nothing to lose.
 **Content:** Route I is six Indian wetlands and rivers with official sources (Ramsar, UNESCO, state tourism and lake authorities). Postcard art is drawn placeholders until Phase 7.
 **Revisit when:** a health reviewer confirms the last-call window, or testers want cards on a different schedule.
+
+## D-008 · The Waterverse lives in its own Atlas tab (10 Nov 2026)
+**Chose:** a fourth tab, Atlas, between Today and Journal. Route I's six islands sit in their real compass directions. Each postcard lifts its island's fog for good; the bottle sails there the first time the person opens the Atlas afterwards. The list of places under the map is the full, accessible way in, and the only one when 3D is off.
+**Why:** exploring needs the whole screen and should never slow logging on Today; safety rule 9 means fog never returns.
+**Revisit when:** Routes II to IV arrive and one map gets crowded.

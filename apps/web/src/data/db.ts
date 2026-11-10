@@ -25,6 +25,8 @@ export interface Profile {
   bedtime?: string;
   /** Preferred reminder window from field task 9, or "none". */
   reminderPref?: string;
+  /** How many Waterverse islands the person has watched clear (Phase 5). */
+  atlasSeen?: number;
 }
 
 export interface Vessel {

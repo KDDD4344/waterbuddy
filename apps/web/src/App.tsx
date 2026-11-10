@@ -5,13 +5,14 @@ import { ToastProvider } from './ui/toast';
 import { Onboarding } from './screens/Onboarding';
 import { Today } from './screens/Today';
 import { Journal } from './screens/Journal';
+import { Atlas } from './screens/Atlas';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useToday } from './hooks/useToday';
 import { deliverPostcards } from './data/repo';
 import { You } from './screens/You';
 import './ui.css';
 
-type Tab = 'today' | 'journal' | 'you';
+type Tab = 'today' | 'atlas' | 'journal' | 'you';
 const LOADING = Symbol('loading');
 
 export default function App() {
@@ -38,12 +39,17 @@ function Main({ profile }: { profile: Profile }) {
   return (
     <div className="app" data-motion={reduced ? 'reduce' : 'full'}>
       {tab === 'today' && <Today profile={profile} />}
+      {tab === 'atlas' && <Atlas profile={profile} />}
       {tab === 'journal' && <Journal profile={profile} />}
       {tab === 'you' && <You profile={profile} />}
       <nav className="tabbar" aria-label="Main">
         <TabButton id="today" current={tab} onSelect={setTab} label="Today">
           <path d="M6 3h12l-1.5 17a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" />
           <path d="M6.5 11c2-1 3.5 1 5.5 0s3.5-1 5.5 0" />
+        </TabButton>
+        <TabButton id="atlas" current={tab} onSelect={setTab} label="Atlas">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M15.5 8.5l-2 5-5 2 2-5z" />
         </TabButton>
         <TabButton id="journal" current={tab} onSelect={setTab} label="Journal">
           <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
