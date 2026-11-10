@@ -165,7 +165,7 @@ def test_real_content_has_no_hard_errors() -> None:
 PRIVACY = {
     "version": 1,
     "updated": "2026-11-10",
-    "operator": "The WaterBuddy team, Ahmedabad",
+    "operator": "The WaterBuddy team",
     "contact": "privacy@example.org",
     "sections": [{"heading": "The short version", "paragraphs": ["Drinks stay on the phone."]}],
     "review": {"status": "approved", "reviewer": "A Lawyer", "date": "2026-12-01"},

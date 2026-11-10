@@ -74,7 +74,7 @@ CI runs all of these on every push and pull request (`.github/workflows/ci.yml`)
 - **Web:** import the repo in Vercel and set the root directory to `apps/web`. `vercel.json` handles the service worker and caching headers. Set `VITE_API_URL` to the API's URL.
 - **API:** in Render choose *New → Blueprint* and pick this repo; `render.yaml` deploys `apps/api` with a small Postgres database. Set `WB_ALLOWED_ORIGINS` to the web app's URL, and the push keys from `python -m app.vapid`.
 - **Pilot only:** set `VITE_FEEDBACK_URL` in Vercel to the feedback form's link; adults see it under You.
-- **Reminders:** in GitHub, add the repository variable `WB_API_URL` and the secret `WB_CRON_TOKEN` (copy it from Render). `.github/workflows/reminders.yml` then sends due reminders every 10 minutes.
+- **Reminders:** in GitHub, add the repository variable `WB_API_URL` and the secret `WB_CRON_TOKEN`, the same value as on Render (make one with `python -c "import secrets; print(secrets.token_urlsafe(32))"`). `.github/workflows/reminders.yml` then sends due reminders every 10 minutes.
 - **Checking on real phones:** Android Chrome works from the website or the installed app. iPhone and iPad need iOS 16.4 or later, and WaterBuddy added to the Home Screen first.
 
 ## Rules that never bend
