@@ -46,7 +46,16 @@ cd apps/web && npm run lint && npm run typecheck && npm test && npm run build
 cd apps/web && npx playwright install chromium webkit && npm run test:e2e
 cd apps/api && .venv/bin/ruff check . && .venv/bin/pytest
 python3 tools/validate_content.py && python3 -m pytest tools -q
+python3 tools/build_art.py --check
 ```
+
+## Adding art
+
+See [`docs/art-brief.md`](docs/art-brief.md). In short:
+
+- **Pip's model:** compress with `npm run art:optimize -- in.glb public/models/pip.glb` (in `apps/web`), check with `python tools/check_glb.py apps/web/public/models/pip.glb`, then set `"pip": "/models/pip.glb"` in `content/art/models.json`.
+- **Postcards:** put the painting in `content/art/postcards/<card id>.png`, set `"art": true` in the card's JSON, and run `python tools/build_art.py` (needs `pip install -r tools/requirements.txt`).
+- **Icons:** `python tools/make_icons.py apps/web/public/icons` redraws the PNG icons and the notification badge from the same shapes as `favicon.svg`.
 
 CI runs all of these on every push and pull request (`.github/workflows/ci.yml`).
 
@@ -72,5 +81,5 @@ Read [`docs/safety-rules.md`](docs/safety-rules.md) before building any feature 
 | 4 | Night voyage and postcards | Done (cards await a named fact reviewer) |
 | 5 | The Waterverse | Done (smoothness still to check on a real mid-range phone) |
 | 6 | Reminders and installing | Done (real-phone delivery still to check) |
-| 7 | Production art and motion | Next |
-| 8 | Every age, privacy and launch | |
+| 7 | Production art and motion | Pipeline done; art itself is with the art track (`docs/art-brief.md`) |
+| 8 | Every age, privacy and launch | Next |

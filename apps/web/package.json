@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"e2e/**/*.ts\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"e2e/**/*.ts\"",
+    "art:optimize": "npx --yes @gltf-transform/cli@4.5.1 optimize --compress meshopt --texture-compress webp --texture-size 1024"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible-mono": "^5.3.0",

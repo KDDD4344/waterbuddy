@@ -28,6 +28,8 @@ export interface Postcard {
   sources: Source[];
   /** False until a named reviewer has checked every fact (safety rule 13). */
   reviewed: boolean;
+  /** A painted illustration exists (built by tools/build_art.py); otherwise a drawn placeholder. */
+  art: boolean;
 }
 
 type RawCard = {
@@ -43,6 +45,7 @@ type RawCard = {
   alt: string;
   sources: Source[];
   review: { status: string };
+  art?: boolean | null;
 };
 
 const files = import.meta.glob<RawCard>('../../../../content/postcards/route-1/*.json', { eager: true, import: 'default' });
@@ -60,7 +63,8 @@ export const ROUTE_1: Postcard[] = Object.values(files)
     fieldFind: c.field_find,
     alt: c.alt,
     sources: c.sources,
-    reviewed: c.review.status === 'approved'
+    reviewed: c.review.status === 'approved',
+    art: c.art === true
   }))
   .sort((a, b) => a.number - b.number);
 

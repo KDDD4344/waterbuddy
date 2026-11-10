@@ -1,0 +1,7 @@
+{
+  "nodes": ["Bottle", "Glass", "Liquid", "Cork", "Pip", "Eye_L", "Eye_R", "Lid_L", "Lid_R", "Mouth"],
+  "clips": ["idle", "hide", "peek", "cheer", "dance", "wave", "nod", "click", "cork", "sail"],
+  "shape_keys": ["happy", "surprised", "sleepy"],
+  "max_triangles": 18000,
+  "max_bytes": 1572864
+}

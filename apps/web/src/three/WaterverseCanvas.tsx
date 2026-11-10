@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { Waterverse } from './waterverse';
 import { createSound } from './audio';
+import { makePip, usePipModel, type PipModel } from './models';
 import { HARBOUR, ISLANDS, type IslandStatus } from '../domain/atlas';
 
 export type WaterverseProps = {
@@ -30,6 +31,7 @@ const BOUNDS = { minX: -20, maxX: 22, minZ: -24, maxZ: 18 };
 const OFFSET = new THREE.Vector3(0, 19, 15);
 
 export default function WaterverseCanvas(props: WaterverseProps) {
+  const model = usePipModel();
   const wrap = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const [dpr, setDpr] = useState(() => Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, MAX_DPR));
@@ -55,18 +57,18 @@ export default function WaterverseCanvas(props: WaterverseProps) {
         }}
         aria-hidden="true"
       >
-        <Scene {...props} onSlow={() => setDpr((d) => (d > 1.01 ? 1 : d))} />
+        {model !== undefined && <Scene {...props} model={model} onSlow={() => setDpr((d) => (d > 1.01 ? 1 : d))} />}
       </Canvas>
     </div>
   );
 }
 
-function Scene({ status, from, arrivals, selected, onSelect, onArrive, reducedMotion, soundOn, onReady, labels, onSlow }: WaterverseProps & { onSlow: () => void }) {
+function Scene({ status, from, arrivals, selected, onSelect, onArrive, reducedMotion, soundOn, onReady, labels, onSlow, model }: WaterverseProps & { onSlow: () => void; model: PipModel | null }) {
   const { camera, gl, size } = useThree();
   const sound = useMemo(() => createSound(), []);
   // Built once; it keeps the voyage state across re-renders.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const world = useMemo(() => new Waterverse({ reducedMotion, sound }), []);
+  const world = useMemo(() => new Waterverse({ reducedMotion, sound, pip: makePip(model, 1) }), []);
   const controls = useMemo(() => {
     const c = new MapControls(camera, gl.domElement);
     c.enableDamping = true;

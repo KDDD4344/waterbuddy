@@ -45,3 +45,8 @@ Each decision records what we chose, why, and what would make us revisit it. Add
 **Rules:** never after the goal (safety rule 2), never after last call (rule 3), every other day after 3 ignored in a row, paused after 7 (rule 2's "quieter"). Turning reminders off or deleting everything deletes the server row.
 **Scheduling:** a GitHub Actions cron calls `POST /internal/send-due` every 10 minutes (free, and wakes the free Render service). Reminders can be up to about 20 minutes late. `WB_SCHEDULER_ENABLED` runs the same check in-process where the server stays awake.
 **Revisit when:** reminders need to be on the minute (move to an always-on worker), or people ask for more than one a day.
+
+## D-010 · Art drops in through contracts, and Rive waits for an animator (10 Nov 2026)
+**Chose:** production art arrives as files that follow written contracts (`docs/art-brief.md`, `content/art/pip-contract.json`). Pip's glTF model replaces the built-in Pip when `content/art/models.json` names it and it passes the check; painted postcards replace the drawn placeholders when a card's `"art"` is true. A missing or broken file always falls back to the placeholder. Stamps and stickers keep their CSS animations; Rive is not added until an animator is on the team, because nobody can author `.riv` files yet and a runtime with no files only adds weight.
+**Pip's icon** is redrawn on a 24 px grid (dome, two big eyes, one claw) and the PNG icons and Android notification badge are generated from the same shapes.
+**Revisit when:** an animator joins (adopt Rive for stamps, stickers and buttons), or the model contract needs more nodes.

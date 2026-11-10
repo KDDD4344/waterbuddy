@@ -80,4 +80,17 @@ describe('Waterverse voyage', () => {
     expect(w.islandOf(w.group)).toBe(-1);
     w.dispose();
   });
+
+  it('Moss lives at Loktak and appears once its fog lifts', () => {
+    const w = new Waterverse({ reducedMotion: true });
+    const moss = w.islands[0]!.group.getObjectByName('Moss')!;
+    expect(moss).toBeTruthy();
+    w.setStatus(atlasState(new Set(), 0).status, true);
+    w.update(0.1, 0.1);
+    expect(moss.visible).toBe(false);
+    w.setStatus(atlasState(new Set(['loktak']), 1).status, true);
+    w.update(0.1, 0.2);
+    expect(moss.visible).toBe(true);
+    w.dispose();
+  });
 });

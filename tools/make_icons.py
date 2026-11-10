@@ -1,7 +1,9 @@
 """Draw WaterBuddy's app icons as PNG files with no third-party libraries.
 
-Pip's head and eye stalks peek over the waterline on deep water. The maskable
-icon keeps everything inside the central safe zone so Android can crop it.
+The same Pip as favicon.svg (drawn on a 24-unit grid so he reads at icon size): a coral
+dome on the waterline, two big eyes on stalks, one claw. The maskable icon keeps
+everything inside the central safe zone, and the badge is a white silhouette for
+Android's notification bar.
 
 Usage:
     python tools/make_icons.py apps/web/public/icons
@@ -34,32 +36,53 @@ def _segment(x: float, y: float, ax: float, ay: float, bx: float, by: float, r: 
     return math.hypot(px - t * dx, py - t * dy) <= r
 
 
+PLATE_LINE = (181, 69, 46)
+
+
+def _pip(x: float, y: float) -> str | None:
+    """Which part of Pip is at (x, y) on the 24-unit grid of favicon.svg, or None."""
+    for ex in (7.8, 16.2):
+        if math.hypot(x - ex - 0.6, y - 5.7) <= 1.45:
+            return "pupil"
+        if math.hypot(x - ex, y - 5.4) <= 2.7:
+            return "eye"
+    if _segment(x, y, 19.6, 12.4, 21.6, 11.0, 0.45):
+        return "notch"
+    if math.hypot(x - 19.6, y - 12.4) <= 2.3:
+        return "body"
+    if y <= 17.2 and _ellipse(x, y, 12, 17.2, 7.4, 5.6):
+        r = math.hypot((x - 12) / 7.4, (y - 16.86) / 5.6)
+        return "plate" if abs(r - 1) < 0.1 and y < 13.6 else "body"
+    for sx, sy, ex, ey in ((9.6, 12, 8, 6.6), (14.4, 12, 16, 6.6)):
+        if _segment(x, y, sx, sy, ex, ey, 0.85):
+            return "body"
+    return None
+
+
 def shade(u: float, v: float, scale: float) -> tuple[int, int, int]:
     """Colour at normalised coordinates (0..1). `scale` shrinks the art toward the centre."""
-    x = 0.5 + (u - 0.5) / scale
-    y = 0.5 + (v - 0.5) / scale
-    col = DEEP
-    wave = 0.64 + 0.025 * math.sin(x * math.tau * 1.5)
-    if y > wave:
-        col = WATER
-    if abs(y - wave) < 0.012:
-        col = FOAM
-    # eye stalks
-    for sx, ex in ((0.43, 0.38), (0.57, 0.62)):
-        if _segment(x, y, sx, 0.5, ex, 0.27, 0.022):
-            col = CORAL
-    # body (drawn after the water so Pip sits on the surface)
-    if _ellipse(x, y, 0.5, 0.56, 0.2, 0.135):
-        col = PLATE if y < 0.53 else CORAL
-    # eyes
-    for ex in (0.38, 0.62):
-        if _ellipse(x, y, ex, 0.25, 0.07, 0.07):
-            col = WHITE
-        if _ellipse(x, y, ex + 0.012, 0.257, 0.036, 0.036):
-            col = PUPIL
-        if _ellipse(x, y, ex + 0.025, 0.24, 0.011, 0.011):
-            col = WHITE
-    return col
+    x = (0.5 + (u - 0.5) / scale) * 24
+    y = (0.5 + (v - 0.5) / scale) * 24
+    part = _pip(x, y)
+    if part == "pupil":
+        return PUPIL
+    if part == "eye":
+        return WHITE
+    if part == "notch":
+        return DEEP
+    if part == "plate":
+        return PLATE_LINE
+    if part == "body":
+        return CORAL
+    if abs(y - 17) < 0.45:
+        return FOAM
+    return WATER if y > 17 else DEEP
+
+
+def badge_alpha(u: float, v: float) -> int:
+    """Android notification badge: Pip as a white silhouette, pupils cut out."""
+    part = _pip(u * 24 * 0.92 + 0.96, v * 24 * 0.92 + 0.3)
+    return 255 if part in ("eye", "body", "plate") else 0
 
 
 def render(size: int, scale: float, samples: int = 3) -> bytes:
@@ -80,13 +103,29 @@ def render(size: int, scale: float, samples: int = 3) -> bytes:
     return b"".join(rows)
 
 
-def write_png(path: Path, size: int, raw: bytes) -> None:
+def render_badge(size: int, samples: int = 3) -> bytes:
+    rows = []
+    n = samples * samples
+    for py in range(size):
+        row = bytearray([0])
+        for px in range(size):
+            a = sum(
+                badge_alpha((px + (sx + 0.5) / samples) / size, (py + (sy + 0.5) / samples) / size)
+                for sy in range(samples)
+                for sx in range(samples)
+            )
+            row += bytes((255, 255, 255, a // n))
+        rows.append(bytes(row))
+    return b"".join(rows)
+
+
+def write_png(path: Path, size: int, raw: bytes, alpha: bool = False) -> None:
     def chunk(tag: bytes, data: bytes) -> bytes:
         return (
             struct.pack(">I", len(data)) + tag + data + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
         )
 
-    header = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)
+    header = struct.pack(">IIBBBBB", size, size, 8, 6 if alpha else 2, 0, 0, 0)
     png = (
         b"\x89PNG\r\n\x1a\n"
         + chunk(b"IHDR", header)
@@ -107,6 +146,8 @@ def main(out_dir: str) -> None:
     ):
         write_png(out / name, size, render(size, scale))
         print(f"wrote {out / name}")
+    write_png(out / "badge-96.png", 96, render_badge(96), alpha=True)
+    print(f"wrote {out / 'badge-96.png'}")
 
 
 if __name__ == "__main__":

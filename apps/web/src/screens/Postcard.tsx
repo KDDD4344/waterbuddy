@@ -5,7 +5,7 @@ import { markPostcardRead } from '../data/repo';
 import { dayLabel } from '../domain/dates';
 import { postcardById, ROUTE_1, type Postcard as Card } from '../domain/voyage';
 import { useToday } from '../hooks/useToday';
-import { PostcardArt } from '../components/PostcardArt';
+import { PostcardPicture } from '../components/PostcardArt';
 import { Sheet } from '../ui/Sheet';
 
 /** Opens a postcard: it unfolds from the message bottle, picture side first. */
@@ -46,7 +46,7 @@ export function Postcard({ card, record, back }: { card: Card; record?: Postcard
     <div className="postcard" data-side={back ? 'back' : 'front'}>
       <div className="postcard-inner">
         <figure className="postcard-face postcard-front" inert={back}>
-          <PostcardArt scene={card.scene} className="postcard-art" />
+          <PostcardPicture card={card} className="postcard-art" large />
           <figcaption>
             <span className="postcard-place">{card.place}</span>
             <span className="postcard-region">{card.region}</span>
@@ -123,7 +123,7 @@ export function PostcardAlbum() {
           got.has(c.id) ? (
             <li key={c.id}>
               <button type="button" className="album-card" onClick={() => setOpen(c.id)}>
-                <PostcardArt scene={c.scene} className="album-art" />
+                <PostcardPicture card={c} className="album-art" />
                 <span className="album-place">{c.place}</span>
               </button>
             </li>

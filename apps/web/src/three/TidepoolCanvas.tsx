@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { buildTidepool, type Quality } from './tidepool';
 import { TidepoolController } from './controller';
 import { createSound } from './audio';
+import { makePip, usePipModel, type PipModel } from './models';
 import { tidepoolBus } from './bus';
 
 export type TidepoolProps = {
@@ -24,6 +25,7 @@ export type TidepoolProps = {
 const MAX_DPR = 1.75;
 
 export default function TidepoolCanvas(props: TidepoolProps) {
+  const model = usePipModel();
   const wrap = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const [dpr, setDpr] = useState(() => Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, MAX_DPR));
@@ -57,19 +59,19 @@ export default function TidepoolCanvas(props: TidepoolProps) {
         }}
         aria-hidden="true"
       >
-        <Scene {...props} quality={quality} onSlow={onSlow} />
+        {model !== undefined && <Scene {...props} model={model} quality={quality} onSlow={onSlow} />}
       </Canvas>
     </div>
   );
 }
 
-function Scene({ fill, corked, night, reducedMotion, soundOn, onReady, quality, onSlow }: TidepoolProps & { quality: Quality; onSlow: () => void }) {
+function Scene({ fill, corked, night, reducedMotion, soundOn, onReady, quality, onSlow, model }: TidepoolProps & { quality: Quality; onSlow: () => void; model: PipModel | null }) {
   const { camera, size } = useThree();
   const sound = useMemo(() => createSound(), []);
   const env = useMemo(() => buildTidepool(quality), [quality]);
   // Built once: the controller keeps Pip's state across quality changes and re-renders.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const ctrl = useMemo(() => new TidepoolController({ fill, reducedMotion, sound }), []);
+  const ctrl = useMemo(() => new TidepoolController({ fill, reducedMotion, sound, pip: makePip(model, fill) }), []);
   const ready = useRef(false);
   const perf = useRef({ frames: 0, time: 0, slowStreak: 0 });
   const look = useMemo(() => new THREE.Vector3(0, 2.0, 0), []);

@@ -43,11 +43,11 @@ export class TidepoolController {
   private camera: THREE.Camera | null = null;
   private tmp = new THREE.Vector3();
 
-  constructor({ fill = 0, reducedMotion = false, sound = silent }: { fill?: number; reducedMotion?: boolean; sound?: Sound } = {}) {
+  constructor({ fill = 0, reducedMotion = false, sound = silent, pip }: { fill?: number; reducedMotion?: boolean; sound?: Sound; pip?: PipRig } = {}) {
     this.reducedMotion = reducedMotion;
     this.sound = sound;
     this.latestFill = fill;
-    this.pip = buildPip({ fill });
+    this.pip = pip ?? buildPip({ fill });
     this.pip.root.scale.setScalar(0.88);
     this.pip.root.position.set(-0.55, 0, 0.35);
     this.streamMat = new THREE.ShaderMaterial({

@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { SceneId } from '../domain/voyage';
+import type { Postcard, SceneId } from '../domain/voyage';
 
 /**
  * Placeholder postcard illustrations, drawn in the app's inks. Phase 7 replaces them with
@@ -33,6 +33,23 @@ export function PostcardArt({ scene, className }: { scene: SceneId; className?: 
       {SCENES[scene](g)}
       <rect width="320" height="200" fill="none" stroke="#13303A" strokeOpacity="0.15" strokeWidth="2" />
     </svg>
+  );
+}
+
+/** The painted illustration when it exists, else the drawn placeholder. */
+export function PostcardPicture({ card, className, large = false }: { card: Postcard; className?: string; large?: boolean }) {
+  if (!card.art) return <PostcardArt scene={card.scene} className={className} />;
+  const base = `/art/postcards/${card.id}`;
+  return (
+    <img
+      className={className}
+      src={`${base}-800.webp`}
+      srcSet={`${base}-800.webp 800w, ${base}-1600.webp 1600w`}
+      sizes={large ? '(max-width: 520px) 92vw, 480px' : '160px'}
+      alt=""
+      loading={large ? 'eager' : 'lazy'}
+      decoding="async"
+    />
   );
 }
 

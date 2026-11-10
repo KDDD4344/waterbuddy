@@ -10,6 +10,7 @@ The app ships these files; nothing factual is hard-coded in components.
 | `id` | Same as the file name |
 | `number` | Order on the route: 1, 2, 3… with no gaps |
 | `coordinates` | Like `24.4°N 93.8°E`, from a source where possible |
+| `art` | `true` once a painting is in `art/postcards/<id>.png` (then run `tools/build_art.py`); `null` uses the drawn placeholder |
 | `scene` | Which drawn placeholder to use until real art lands (`floating-islands`, `clear-river`, `river-island`, `mangroves`, `lagoon`, `backwaters`) |
 | `message` | Pip's voice, first person, 60 words or fewer |
 | `field_find` | One animal, plant or human-made wonder tied to the place |

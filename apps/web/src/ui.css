@@ -1870,3 +1870,9 @@ textarea,
   flex-direction: column;
   gap: var(--wb-space-1);
 }
+
+/* Painted postcard art (Phase 7) */
+img.postcard-art,
+img.album-art {
+  object-fit: cover;
+}

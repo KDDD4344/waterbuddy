@@ -1,12 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0E3A49"/>
-  <path d="M10 38 Q22 34 32 38 T54 38 V52 H10 Z" fill="#4FC0B2"/>
-  <line x1="27" y1="22" x2="24" y2="13" stroke="#E9784F" stroke-width="3" stroke-linecap="round"/>
-  <line x1="37" y1="22" x2="40" y2="13" stroke="#E9784F" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="24" cy="11" r="4.5" fill="#FCFBF6"/>
-  <circle cx="40" cy="11" r="4.5" fill="#FCFBF6"/>
-  <circle cx="25" cy="11.5" r="2.4" fill="#0F1D26"/>
-  <circle cx="41" cy="11.5" r="2.4" fill="#0F1D26"/>
-  <ellipse cx="32" cy="29" rx="14" ry="10" fill="#E9784F"/>
-  <path d="M18 28 Q32 16 46 28" fill="#C0523A"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Pip, drawn on a 24 px grid so he reads at icon size: dome, two big eyes, one claw. -->
+  <defs><clipPath id="r"><rect width="24" height="24" rx="5.5"/></clipPath></defs>
+  <g clip-path="url(#r)">
+    <rect width="24" height="24" fill="#0E3A49"/>
+    <rect y="17" width="24" height="7" fill="#4FC0B2"/>
+    <path d="M0 17h24" stroke="#CFF3EC" stroke-width="0.9"/>
+  </g>
+  <path d="M9.6 12 8 6.6M14.4 12 16 6.6" stroke="#E9784F" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M4.6 17.2a7.4 5.6 0 0 1 14.8 0z" fill="#E9784F"/>
+  <path d="M6.4 13.2a7.4 5.6 0 0 1 11.2 0" fill="none" stroke="#B5452E" stroke-width="1.1" stroke-linecap="round"/>
+  <circle cx="19.6" cy="12.4" r="2.3" fill="#E9784F"/>
+  <path d="M19.6 12.4 21.6 11" stroke="#0E3A49" stroke-width="0.9" stroke-linecap="round"/>
+  <circle cx="7.8" cy="5.4" r="2.7" fill="#FCFBF6"/>
+  <circle cx="16.2" cy="5.4" r="2.7" fill="#FCFBF6"/>
+  <circle cx="8.4" cy="5.7" r="1.45" fill="#0F1D26"/>
+  <circle cx="16.8" cy="5.7" r="1.45" fill="#0F1D26"/>
 </svg>

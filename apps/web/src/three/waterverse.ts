@@ -68,7 +68,7 @@ export class Waterverse {
   private heading = 0;
   private onArrive: ((island: number) => void) | null = null;
 
-  constructor({ quality = 'high', reducedMotion = false, sound = silent }: { quality?: Quality; reducedMotion?: boolean; sound?: Sound } = {}) {
+  constructor({ quality = 'high', reducedMotion = false, sound = silent, pip }: { quality?: Quality; reducedMotion?: boolean; sound?: Sound; pip?: PipRig } = {}) {
     this.reducedMotion = reducedMotion;
     this.sound = sound;
     const hiQ = quality === 'high';
@@ -153,7 +153,7 @@ export class Waterverse {
     }
 
     // Pip's corked bottle
-    this.bottle = buildPip({ fill: 1 });
+    this.bottle = pip ?? buildPip({ fill: 1 });
     this.bottle.setCorked(true, true);
     this.bottle.root.scale.setScalar(0.42);
     this.group.add(this.bottle.root);
@@ -383,6 +383,39 @@ export class Waterverse {
         }
         tree(-0.4, 0.2, 0.9);
         tree(0.6, -0.3, 0.8);
+        // Moss, a marimo who lives among the floating islands (art brief, section 3)
+        const moss = new THREE.Group();
+        moss.name = 'Moss';
+        // An indexed sphere: a detailed icosahedron here stalled WebKit's software renderer in tests.
+        const ball = new THREE.SphereGeometry(0.42, 18, 14);
+        const p = ball.attributes.position as THREE.BufferAttribute;
+        const v = new THREE.Vector3();
+        for (let k = 0; k < p.count; k++) {
+          v.fromBufferAttribute(p, k);
+          const fuzz = 1 + 0.07 * Math.sin(v.x * 31 + v.y * 17) * Math.sin(v.z * 29 - v.y * 13);
+          p.setXYZ(k, v.x * fuzz, v.y * fuzz, v.z * fuzz);
+        }
+        ball.computeVertexNormals();
+        moss.add(new THREE.Mesh(ball, mat(0x4f8a3a, 1)));
+        const eyeMat = mat(0x13303a, 0.4);
+        const eyes: THREE.Mesh[] = [];
+        for (const s of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), eyeMat);
+          eye.position.set(s * 0.13, 0.08, 0.37);
+          eye.scale.set(1, 1.3, 0.6);
+          moss.add(eye);
+          eyes.push(eye);
+        }
+        moss.position.set(radius + 0.55, 0.12, radius * 0.55);
+        group.add(moss);
+        extras.push((t, r) => {
+          moss.position.y = 0.12 + Math.sin(t * 0.9) * 0.06;
+          moss.rotation.y = -0.6 + Math.sin(t * 0.3) * 0.25;
+          // a slow, sleepy blink
+          const blink = (t % 5.3) < 0.18 ? 0.15 : 1;
+          for (const e of eyes) e.scale.y = 1.3 * blink;
+          moss.visible = r > 0.02;
+        });
         break;
       }
       case 'clear-river': {

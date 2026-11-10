@@ -56,6 +56,13 @@ def check_postcard(path: Path, data: object, report: Report, strict: bool, root:
     if not isinstance(find, dict) or not find.get("name") or not find.get("note"):
         report.errors.append(f"{name}: field_find needs a name and a note")
 
+    art = data.get("art")
+    if art not in (None, False, True):
+        report.errors.append(f'{name}: "art" must be true, false or null')
+    elif art is True and root is not None:
+        folder = root / "art" / "postcards"
+        if not any((folder / f"{data['id']}{ext}").exists() for ext in (".png", ".jpg", ".jpeg", ".webp")):
+            report.errors.append(f'{name}: "art" is true but art/postcards/{data["id"]}.png is missing')
     if data["scene"] not in SCENES:
         report.errors.append(f"{name}: unknown scene '{data['scene']}'")
     if not COORDINATES.match(str(data["coordinates"])):
