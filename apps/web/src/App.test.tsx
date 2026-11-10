@@ -106,7 +106,7 @@ describe('Phase 3 field tasks and journal', () => {
     await user.click(await screen.findByRole('button', { name: /Field task 1 of 14/ }));
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Not today' }));
     expect(await screen.findByText('Field task saved for tomorrow. Nothing lost.')).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Saved for tomorrow. Nothing lost.');
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved for tomorrow. Nothing lost.'));
 
     await user.click(screen.getByRole('button', { name: 'Journal' }));
     expect(await screen.findByText('0 of 14 pressed in')).toBeInTheDocument();
