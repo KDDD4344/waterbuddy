@@ -27,6 +27,8 @@ export interface Profile {
   reminderPref?: string;
   /** How many Waterverse islands the person has watched clear (Phase 5). */
   atlasSeen?: number;
+  /** Daily reminder (Phase 6). `id` is this device's random key on the server. */
+  reminders?: { on: boolean; time: string; id: string };
 }
 
 export interface Vessel {

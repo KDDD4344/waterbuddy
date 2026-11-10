@@ -246,3 +246,141 @@ test('the Waterverse: Pip sails to new islands, the fog lifts, and every place i
   })).toBe(hasWebGL ? 2 : 2);
   expect(errors).toEqual([]);
 });
+
+const API = 'http://localhost:8765';
+
+async function reminderId(page: Page): Promise<string | undefined> {
+  return page.evaluate(async () => {
+    const req = indexedDB.open('waterbuddy');
+    const db: IDBDatabase = await new Promise((r) => (req.onsuccess = () => r(req.result)));
+    return new Promise<string | undefined>((r) => {
+      const g = db.transaction('profile').objectStore('profile').get('me');
+      g.onsuccess = () => r((g.result as { reminders?: { id: string } }).reminders?.id);
+    });
+  });
+}
+
+test('reminders: turn on, the server learns only time, zone, bedtime and goal-met, and goes quiet at the goal', async ({ page, context, request, browserName }) => {
+  test.skip(browserName !== 'chromium', 'iPhone needs the Home Screen app for push; covered by the next test.');
+  test.setTimeout(60_000);
+  await context.grantPermissions(['notifications'], { origin: 'http://localhost:4173' });
+  // Headless browsers have no push service, so the subscription itself is faked.
+  await page.addInitScript(() => {
+    const fake = {
+      endpoint: 'https://push.example.test/e2e',
+      toJSON() {
+        return { endpoint: this.endpoint, keys: { p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', auth: 'tBHItJI5svbpez7KI4CCXg' } };
+      },
+      unsubscribe: async () => true
+    };
+    let on = false;
+    PushManager.prototype.subscribe = async function () {
+      on = true;
+      return fake as unknown as PushSubscription;
+    };
+    PushManager.prototype.getSubscription = async function () {
+      return (on ? fake : null) as unknown as PushSubscription | null;
+    };
+  });
+  const sent: unknown[] = [];
+  page.on('request', (r) => {
+    if (r.url().startsWith(API) && r.method() !== 'GET') sent.push({ url: r.url(), body: r.postDataJSON?.() ?? null });
+  });
+
+  await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
+  await onboard(page);
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+  await page.getByLabel('Remind me at').fill('20:00');
+  await expect(page.getByRole('alert')).toContainText('too close to last call');
+  await page.getByLabel('Remind me at').fill('11:00');
+  await page.getByRole('button', { name: 'Turn on daily reminder' }).click();
+  await expect(page.getByRole('status')).toContainText('Daily reminder set for 11:00 am');
+
+  const id = (await reminderId(page))!;
+  expect(id).toMatch(/^[A-Za-z0-9_-]{24}$/);
+  const saved = await (await request.get(`${API}/reminders/${id}`)).json();
+  expect(saved).toMatchObject({ time: '11:00', bedtime: '22:30', paused: false, goal_met_day: null });
+
+  // Fill the bottle: the server hears only "goal met today".
+  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('Bottle full and corked');
+  await expect.poll(async () => (await (await request.get(`${API}/reminders/${id}`)).json()).goal_met_day).toBe('2026-11-10');
+
+  // Nothing sent to the server mentions an amount.
+  expect(JSON.stringify(sent)).not.toMatch(/ml|2000|500|total/i);
+
+  // Turning reminders off deletes the server's row.
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  await page.getByRole('button', { name: 'Turn off' }).click();
+  await expect(page.getByRole('status')).toContainText('Reminders off');
+  expect((await request.get(`${API}/reminders/${id}`)).status()).toBe(404);
+});
+
+test('a reminder push is shown only before the goal, in gentle words', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Service worker push events are checked in Chromium.');
+  await page.clock.setFixedTime(new Date('2026-11-10T11:00:00'));
+  await onboard(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  const sw = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+  // Headless Chromium can't display notifications, so record what the worker asks to show.
+  const pushAt = (iso: string) =>
+    sw.evaluate(async (time) => {
+      const g = self as unknown as ServiceWorkerGlobalScope & { __shown?: string[] };
+      g.__shown = [];
+      const RealDate = Date;
+      const fixed = new RealDate(time).getTime();
+      // @ts-expect-error test-only clock for the worker
+      g.Date = class extends RealDate {
+        constructor(...args: []) {
+          super(...((args.length ? args : [fixed]) as []));
+        }
+        static now() {
+          return fixed;
+        }
+      };
+      g.registration.showNotification = async (_title: string, opts?: NotificationOptions) => {
+        g.__shown!.push(opts?.body ?? '');
+      };
+      const PushEventCtor = (g as unknown as { PushEvent: new (t: string, i: object) => Event }).PushEvent;
+      g.dispatchEvent(new PushEventCtor('push', { data: JSON.stringify({ t: 'reminder', id: 'device-e2e-abcdefghijkl', day: '2026-11-10' }) }));
+      await new Promise((r) => setTimeout(r, 800));
+      g.Date = RealDate;
+      return g.__shown;
+    }, iso);
+
+  const before = await pushAt('2026-11-10T11:00:00');
+  expect(before).toHaveLength(1);
+  expect(before[0]).not.toMatch(/dehydrat|missed|streak|forgot|should/i);
+
+  // After last call (20:30 with the default bedtime) nothing is shown.
+  expect(await pushAt('2026-11-10T21:00:00')).toEqual([]);
+
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await expect(stat(page)).toContainText('Bottle full and corked');
+  expect(await pushAt('2026-11-10T12:00:00')).toEqual([]);
+});
+
+test('on iPhone, reminders explain the Home Screen step first', async ({ page, browserName }) => {
+  test.skip(browserName !== 'webkit', 'iPhone only.');
+  await onboard(page);
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  await expect(page.getByText('reminders work once WaterBuddy is on your Home Screen')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Install WaterBuddy' })).toBeVisible();
+  await expect(page.getByText('Add to Home Screen', { exact: true })).toBeVisible();
+});
+
+test('offline, the 3D Waterverse still loads from the cache', async ({ page, context }) => {
+  const hasWebGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl'));
+  test.skip(!hasWebGL, 'No WebGL in this browser build.');
+  await onboard(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true);
+  await context.setOffline(true);
+  await page.reload();
+  await page.getByRole('button', { name: 'Atlas' }).click();
+  await expect(page.locator('.atlas-3d.ready')).toBeVisible({ timeout: 20_000 });
+  await context.setOffline(false);
+});

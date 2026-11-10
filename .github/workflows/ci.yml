@@ -43,6 +43,13 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+      # The reminder tests run against the real API (in-memory database).
+      - run: python -m venv ../api/.venv && ../api/.venv/bin/pip install -r ../api/requirements.txt
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e

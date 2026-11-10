@@ -9,6 +9,7 @@ import { Atlas } from './screens/Atlas';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useToday } from './hooks/useToday';
 import { deliverPostcards } from './data/repo';
+import { useReminderSync } from './hooks/useReminderSync';
 import { You } from './screens/You';
 import './ui.css';
 
@@ -32,6 +33,7 @@ function Main({ profile }: { profile: Profile }) {
   const [tab, setTab] = useState<Tab>('today');
   const reduced = useReducedMotion(profile.reduceMotion);
   const today = useToday();
+  useReminderSync(profile);
   // Voyages that sailed overnight wash up as postcards when a new day starts.
   useEffect(() => {
     void deliverPostcards();

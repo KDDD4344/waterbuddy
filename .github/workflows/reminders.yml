@@ -1,0 +1,23 @@
+# Sends due reminders. Runs every 10 minutes and calls the API, which decides who is due
+# (one a day at most, never after the goal, never after last call).
+# Set up once: repository variable WB_API_URL (e.g. https://waterbuddy-api.onrender.com)
+# and secret WB_CRON_TOKEN (the same value as the API's WB_CRON_TOKEN).
+# GitHub may start scheduled runs a few minutes late; the API allows for that.
+name: Reminders
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    if: ${{ vars.WB_API_URL != '' }}
+    steps:
+      - name: Send due reminders
+        env:
+          API: ${{ vars.WB_API_URL }}
+          TOKEN: ${{ secrets.WB_CRON_TOKEN }}
+        # The free Render plan sleeps when idle, so allow time for it to wake.
+        run: curl -fsS --retry 2 --max-time 120 -X POST -H "X-Cron-Token: $TOKEN" "$API/internal/send-due"

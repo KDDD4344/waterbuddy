@@ -35,6 +35,10 @@ python3.12 -m venv .venv
 
 To let the app talk to the API, copy `apps/web/.env.example` to `apps/web/.env`.
 
+Reminders locally: run `.venv/bin/python -m app.vapid`, put the two keys in `apps/api/.env`
+with `WB_SCHEDULER_ENABLED=true`, then build and preview the web app (`npm run build && npm run preview`).
+Push needs the production service worker, so it doesn't work under `npm run dev`.
+
 ## Checks
 
 ```bash
@@ -49,7 +53,9 @@ CI runs all of these on every push and pull request (`.github/workflows/ci.yml`)
 ## Deploy
 
 - **Web:** import the repo in Vercel and set the root directory to `apps/web`. `vercel.json` handles the service worker and caching headers. Set `VITE_API_URL` to the API's URL.
-- **API:** in Render choose *New → Blueprint* and pick this repo; `render.yaml` deploys `apps/api`. Set `WB_ALLOWED_ORIGINS` to the web app's URL.
+- **API:** in Render choose *New → Blueprint* and pick this repo; `render.yaml` deploys `apps/api` with a small Postgres database. Set `WB_ALLOWED_ORIGINS` to the web app's URL, and the push keys from `python -m app.vapid`.
+- **Reminders:** in GitHub, add the repository variable `WB_API_URL` and the secret `WB_CRON_TOKEN` (copy it from Render). `.github/workflows/reminders.yml` then sends due reminders every 10 minutes.
+- **Checking on real phones:** Android Chrome works from the website or the installed app. iPhone and iPad need iOS 16.4 or later, and WaterBuddy added to the Home Screen first.
 
 ## Rules that never bend
 
@@ -65,6 +71,6 @@ Read [`docs/safety-rules.md`](docs/safety-rules.md) before building any feature 
 | 3 | Field tasks and the journal | Done |
 | 4 | Night voyage and postcards | Done (cards await a named fact reviewer) |
 | 5 | The Waterverse | Done (smoothness still to check on a real mid-range phone) |
-| 6 | Reminders and installing | Next |
-| 7 | Production art and motion | |
+| 6 | Reminders and installing | Done (real-phone delivery still to check) |
+| 7 | Production art and motion | Next |
 | 8 | Every age, privacy and launch | |

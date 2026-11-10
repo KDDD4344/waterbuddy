@@ -39,3 +39,9 @@ Each decision records what we chose, why, and what would make us revisit it. Add
 **Chose:** a fourth tab, Atlas, between Today and Journal. Route I's six islands sit in their real compass directions. Each postcard lifts its island's fog for good; the bottle sails there the first time the person opens the Atlas afterwards. The list of places under the map is the full, accessible way in, and the only one when 3D is off.
 **Why:** exploring needs the whole screen and should never slow logging on Today; safety rule 9 means fog never returns.
 **Revisit when:** Routes II to IV arrive and one map gets crowded.
+
+## D-009 · Reminders by web push, with the server knowing as little as possible (10 Nov 2026)
+**Chose:** one reminder a day at most, at a time the person picks (field task 9 promised exactly this). The server stores the push subscription, that time, the time zone, bedtime, a yes/no for "goal met today", and how many reminders in a row were dismissed. Never amounts. The push carries no health data; the service worker writes the words from what's on the phone and stays silent if the goal is met or last call has passed, even if the server didn't know yet.
+**Rules:** never after the goal (safety rule 2), never after last call (rule 3), every other day after 3 ignored in a row, paused after 7 (rule 2's "quieter"). Turning reminders off or deleting everything deletes the server row.
+**Scheduling:** a GitHub Actions cron calls `POST /internal/send-due` every 10 minutes (free, and wakes the free Render service). Reminders can be up to about 20 minutes late. `WB_SCHEDULER_ENABLED` runs the same check in-process where the server stays awake.
+**Revisit when:** reminders need to be on the minute (move to an always-on worker), or people ask for more than one a day.

@@ -11,6 +11,8 @@ import { GoalPicker } from '../ui/GoalPicker';
 import { getApiHealth, type ApiHealth } from '../lib/api';
 import { useOfflineReady } from '../lib/offline';
 import { isInstalled, isIos } from '../lib/pwa';
+import { disableReminders } from '../lib/push';
+import { InstallSettings, RemindersSettings } from './RemindersSettings';
 
 export function You({ profile }: { profile: Profile }) {
   const today = useToday();
@@ -146,9 +148,14 @@ export function You({ profile }: { profile: Profile }) {
         </label>
       </section>
 
+      <RemindersSettings profile={profile} />
+      <InstallSettings />
+
       <section className="group" aria-labelledby="g-data">
         <h2 id="g-data">Your data</h2>
-        <p className="small muted">Everything is stored only on this phone.</p>
+        <p className="small muted">
+          Everything is stored only on this phone.{profile.reminders?.on ? ' The reminder server keeps only what’s listed under Reminders.' : ''}
+        </p>
         <div className="stack">
           <button type="button" className="btn ghost" onClick={() => setClearOpen(true)}>
             Clear today&rsquo;s drinks
@@ -204,7 +211,7 @@ export function You({ profile }: { profile: Profile }) {
       <Sheet open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete everything?">
         <div className="sheet-form">
           <p>
-            This permanently deletes your goal, vessels and every drink you&rsquo;ve logged from this phone. It can&rsquo;t be undone. If you want a
+            This permanently deletes your goal, vessels and every drink you&rsquo;ve logged from this phone, and turns off reminders on the server. It can&rsquo;t be undone. If you want a
             copy, download your data first.
           </p>
           <div className="row">
@@ -215,6 +222,7 @@ export function You({ profile }: { profile: Profile }) {
               type="button"
               className="btn danger-solid grow"
               onClick={async () => {
+                if (profile.reminders?.on) await disableReminders(profile.reminders.id);
                 await deleteEverything();
                 setDeleteOpen(false);
               }}

@@ -1861,3 +1861,12 @@ textarea,
 [data-motion='reduce'] .island-card {
   animation: none;
 }
+
+/* Install steps (Phase 6) */
+.steps {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-1);
+}

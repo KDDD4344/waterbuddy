@@ -4,13 +4,17 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // WaterBuddy web app: React + TypeScript, installable as a PWA.
-// The service worker precaches the app shell so logging works offline (Phase 1).
+// The service worker (src/sw.ts) precaches the whole app, 3D scenes included, so it works
+// offline, and shows reminders sent by web push (Phase 6).
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         id: '/',
@@ -31,10 +35,9 @@ export default defineConfig({
           { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: '/index.html',
-        cleanupOutdatedCaches: true
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
       },
       devOptions: { enabled: false }
     })

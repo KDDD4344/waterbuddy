@@ -17,3 +17,22 @@ services:
         value: production
       - key: WB_ALLOWED_ORIGINS
         sync: false
+      # Reminders (Phase 6). Generate the keys with `python -m app.vapid`.
+      - key: WB_DATABASE_URL
+        fromDatabase:
+          name: waterbuddy-db
+          property: connectionString
+      - key: WB_VAPID_PUBLIC_KEY
+        sync: false
+      - key: WB_VAPID_PRIVATE_KEY
+        sync: false
+      - key: WB_VAPID_SUBJECT
+        sync: false
+      - key: WB_CRON_TOKEN
+        generateValue: true
+
+databases:
+  # Holds only reminder subscriptions (apps/api/app/models.py). Check Render's current
+  # free-plan limits; free databases have expired after 30 days in the past.
+  - name: waterbuddy-db
+    plan: free

@@ -2,3 +2,7 @@
 fastapi>=0.115,<1.0
 uvicorn[standard]>=0.32
 pydantic-settings>=2.6
+sqlmodel>=0.0.22
+pywebpush>=2.0
+psycopg[binary]>=3.2
+tzdata>=2024.1
