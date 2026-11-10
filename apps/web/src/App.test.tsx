@@ -29,7 +29,8 @@ describe('Phase 1 tracker', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Log 250 ml, Steel tumbler' }));
     expect(await within(stat).findByText(/250 millilitres of 2 litres, 12 percent/)).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('250 ml logged. 250 ml of 2 L.');
+    // The toast fills in just after the tap; slower machines (CI) need the wait.
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('250 ml logged. 250 ml of 2 L.'));
 
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(await within(stat).findByText(/0 millilitres of 2 litres/)).toBeInTheDocument();
