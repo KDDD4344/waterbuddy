@@ -3,8 +3,9 @@
 Hard errors (always fail): malformed JSON, missing required fields, id/file mismatch,
 messages over the word limit, a postcard with no source, unknown art scenes, and route
 numbers that skip or repeat.
-Release checks (fail only with --strict): every postcard and the goal table need an
-approved review. Without --strict these are reported as warnings so work-in-progress
+Release checks (fail only with --strict, the launch gate): every postcard, the goal table
+and the privacy notice need an approved review, and the notice needs an operator and a
+contact. Without --strict these are reported as warnings so work-in-progress
 content can live in the repo.
 
 Usage:
@@ -190,6 +191,40 @@ def check_tasks(path: Path, data: object, report: Report) -> None:
         report.errors.append(f"{name}: days must run 1, 2, 3… with no gaps or repeats")
 
 
+def check_privacy(path: Path, data: object, report: Report, strict: bool) -> None:
+    """The privacy notice the app shows (Phase 8). A legal check approves it before launch."""
+    name = path.name
+    if not isinstance(data, dict):
+        report.errors.append(f"{name}: top level must be an object")
+        return
+    dated = re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(data.get("updated")))
+    if not isinstance(data.get("version"), int) or not dated:
+        report.errors.append(f"{name}: needs a whole-number version and an 'updated' date like 2026-11-10")
+    sections = data.get("sections")
+    if not isinstance(sections, list) or not sections:
+        report.errors.append(f"{name}: needs a 'sections' list")
+    else:
+        for i, sec in enumerate(sections):
+            paras = sec.get("paragraphs") if isinstance(sec, dict) else None
+            if (
+                not isinstance(sec, dict)
+                or not sec.get("heading")
+                or not paras
+                or not all(isinstance(p, str) and p.strip() for p in paras)
+            ):
+                report.errors.append(f"{name}: section {i + 1} needs a heading and paragraphs")
+    release = report.errors if strict else report.warnings
+    needed = (("operator", "who runs WaterBuddy"), ("contact", "a contact for questions and complaints"))
+    for key, what in needed:
+        if not str(data.get(key) or "").strip():
+            release.append(f"{name}: '{key}' is empty; the notice must say {what}")
+    review = data.get("review")
+    if not isinstance(review, dict) or review.get("status") != "approved":
+        release.append(f"{name}: not through the legal check yet")
+    elif not review.get("reviewer") or not review.get("date"):
+        report.errors.append(f"{name}: approved review needs a reviewer and a date")
+
+
 def validate(root: Path, strict: bool = False) -> Report:
     report = Report()
     tasks = root / "field-tasks.json"
@@ -206,6 +241,13 @@ def validate(root: Path, strict: bool = False) -> Report:
             check_goals(goals, json.loads(goals.read_text(encoding="utf-8")), report, strict)
         except json.JSONDecodeError as exc:
             report.errors.append(f"goals.json: invalid JSON ({exc.msg}, line {exc.lineno})")
+    privacy = root / "privacy-notice.json"
+    if privacy.exists():
+        report.checked += 1
+        try:
+            check_privacy(privacy, json.loads(privacy.read_text(encoding="utf-8")), report, strict)
+        except json.JSONDecodeError as exc:
+            report.errors.append(f"privacy-notice.json: invalid JSON ({exc.msg}, line {exc.lineno})")
     routes: dict[str, list[int]] = {}
     for path in sorted((root / "postcards").rglob("*.json")):
         report.checked += 1

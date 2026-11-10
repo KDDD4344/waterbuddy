@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 
 from sqlmodel import Session, select
 
-from .models import Reminder, utcnow
+from .models import RETENTION, Reminder, as_utc, utcnow
 from .push import Sender, SubscriptionGoneError, make_sender, payload_for
 from .rules import is_due, local_day
 from .settings import get_settings
@@ -24,10 +24,21 @@ class RunResult:
     sent: int = 0
     gone: int = 0
     failed: int = 0
+    purged: int = 0
+
+
+def purge_stale(session: Session, now: datetime) -> int:
+    """Delete reminders nobody has used for RETENTION (90 days). The app notices and shows
+    reminders as off. Filtered in Python so it behaves the same on SQLite and Postgres."""
+    cutoff = now - RETENTION
+    stale = [r for r in session.exec(select(Reminder)).all() if as_utc(r.updated_at) < cutoff]
+    for r in stale:
+        session.delete(r)
+    return len(stale)
 
 
 def send_due(session: Session, now: datetime, send: Sender) -> RunResult:
-    result = RunResult()
+    result = RunResult(purged=purge_stale(session, now))
     for r in session.exec(select(Reminder).where(Reminder.paused == False)).all():  # noqa: E712
         if not is_due(r, now):
             continue

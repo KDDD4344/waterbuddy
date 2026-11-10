@@ -3,10 +3,11 @@ import type { Profile } from '../data/db';
 import { updateProfile } from '../data/repo';
 import { NO_REMINDERS, reminderTimeProblem, suggestedTime } from '../domain/reminders';
 import { clockLabel, DEFAULT_BEDTIME, lastCallTime } from '../domain/voyage';
-import { disableReminders, enableReminders, newDeviceId, pushSupport, reminderPaused } from '../lib/push';
+import { disableReminders, enableReminders, newDeviceId, pushSupport, reminderState } from '../lib/push';
 import { useInstallPrompt } from '../lib/install';
 import { isInstalled, isIos } from '../lib/pwa';
 import { useToast } from '../ui/toast';
+import { remindersAllowed } from '../domain/modes';
 
 /** One gentle reminder a day, set from the You screen (Phase 6). */
 export function RemindersSettings({ profile }: { profile: Profile }) {
@@ -18,12 +19,20 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
+  const [stopped, setStopped] = useState(false);
   const timeId = useId();
   const problem = reminderTimeProblem(time, bedtime);
 
   useEffect(() => {
-    if (r?.on) void reminderPaused(r.id).then(setPaused);
-  }, [r?.on, r?.id]);
+    if (!r?.on || support !== 'supported') return;
+    void reminderState(r.id).then((state) => {
+      setPaused(state === 'paused');
+      if (state === 'gone') {
+        setStopped(true);
+        void updateProfile({ reminders: { ...r, on: false } });
+      }
+    });
+  }, [r, support]);
 
   const turnOn = async () => {
     if (problem) return;
@@ -38,6 +47,7 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
     }
     await updateProfile({ reminders: { on: true, time, id } });
     setPaused(false);
+    setStopped(false);
     toast({ text: `Daily reminder set for ${clockLabel(time)}.` });
   };
 
@@ -57,58 +67,72 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
         One gentle reminder a day, at most. It never comes once your bottle is full, or after last call ({clockLabel(lastCallTime(bedtime))}).
       </p>
 
-      {support === 'no-server' && <p className="note">Reminders need the WaterBuddy server, which isn&rsquo;t connected in this version of the app.</p>}
-      {support === 'unsupported' && <p className="note">This browser can&rsquo;t show reminders. Logging and everything else still work.</p>}
-      {support === 'needs-install' && (
-        <p className="note">On iPhone and iPad, reminders work once WaterBuddy is on your Home Screen. See &ldquo;Install WaterBuddy&rdquo; below.</p>
-      )}
-
-      {support === 'supported' && (
+      {!remindersAllowed(profile.ageBand) ? (
+        <p className="note">
+          For anyone under 18, WaterBuddy keeps everything on this phone, so the daily reminder is off. A phone alarm or a note
+          on the fridge works just as well.
+        </p>
+      ) : (
         <>
-          {r?.on && paused && (
-            <div className="note calm" role="status">
-              <p>Paused, because the last few reminders weren&rsquo;t opened. Turn it back on whenever it would help.</p>
-              <button type="button" className="btn ghost" onClick={turnOn} disabled={busy}>
-                Turn back on
-              </button>
-            </div>
+          {support === 'no-server' && <p className="note">Reminders need the WaterBuddy server, which isn&rsquo;t connected in this version of the app.</p>}
+          {support === 'unsupported' && <p className="note">This browser can&rsquo;t show reminders. Logging and everything else still work.</p>}
+          {support === 'needs-install' && (
+            <p className="note">On iPhone and iPad, reminders work once WaterBuddy is on your Home Screen. See &ldquo;Install WaterBuddy&rdquo; below.</p>
           )}
-          {!r?.on && profile.reminderPref === NO_REMINDERS && <p className="small muted">You said you&rsquo;d rather not have reminders. That&rsquo;s fine; this stays off unless you turn it on.</p>}
-          <div className="field">
-            <label htmlFor={timeId} className="setting-label">
-              Remind me at
-            </label>
-            <input id={timeId} type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-describedby={problem ? `${timeId}-err` : undefined} />
-            {problem && (
-              <p id={`${timeId}-err`} className="error" role="alert">
-                {problem}
+
+          {support === 'supported' && (
+            <>
+              {r?.on && paused && (
+                <div className="note calm" role="status">
+                  <p>Paused, because the last few reminders weren&rsquo;t opened. Turn it back on whenever it would help.</p>
+                  <button type="button" className="btn ghost" onClick={turnOn} disabled={busy}>
+                    Turn back on
+                  </button>
+                </div>
+              )}
+              {!r?.on && stopped && (
+                <p className="note calm" role="status">
+                  Reminders stopped after a long break, and the server forgot your settings. Turn them on again whenever you like.
+                </p>
+              )}
+              {!r?.on && profile.reminderPref === NO_REMINDERS && <p className="small muted">You said you&rsquo;d rather not have reminders. That&rsquo;s fine; this stays off unless you turn it on.</p>}
+              <div className="field">
+                <label htmlFor={timeId} className="setting-label">
+                  Remind me at
+                </label>
+                <input id={timeId} type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-describedby={problem ? `${timeId}-err` : undefined} />
+                {problem && (
+                  <p id={`${timeId}-err`} className="error" role="alert">
+                    {problem}
+                  </p>
+                )}
+              </div>
+              <div className="row">
+                {r?.on ? (
+                  <>
+                    <button type="button" className="btn ghost" onClick={turnOff} disabled={busy}>
+                      Turn off
+                    </button>
+                    <button type="button" className="btn primary grow" onClick={turnOn} disabled={busy || !!problem || time === r.time}>
+                      Save time
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" className="btn primary grow" onClick={turnOn} disabled={busy || !!problem}>
+                    Turn on daily reminder
+                  </button>
+                )}
+              </div>
+              {error && (
+                <p className="error" role="alert">
+                  {error}
+                </p>
+              )}
+              <p className="small muted">
+                To send it, the WaterBuddy server keeps your reminder time, time zone, bedtime and whether today&rsquo;s goal is met. Never your drinks.
               </p>
-            )}
-          </div>
-          <div className="row">
-            {r?.on ? (
-              <>
-                <button type="button" className="btn ghost" onClick={turnOff} disabled={busy}>
-                  Turn off
-                </button>
-                <button type="button" className="btn primary grow" onClick={turnOn} disabled={busy || !!problem || time === r.time}>
-                  Save time
-                </button>
-              </>
-            ) : (
-              <button type="button" className="btn primary grow" onClick={turnOn} disabled={busy || !!problem}>
-                Turn on daily reminder
-              </button>
-            )}
-          </div>
-          {error && (
-            <p className="error" role="alert">
-              {error}
-            </p>
+            </>
           )}
-          <p className="small muted">
-            To send it, the WaterBuddy server keeps your reminder time, time zone, bedtime and whether today&rsquo;s goal is met. Never your drinks.
-          </p>
         </>
       )}
     </section>

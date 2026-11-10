@@ -4,6 +4,8 @@ import { DEFAULT_CUP_ML, type Units } from '../domain/units';
 import { completeOnboarding, DEFAULT_VESSELS } from '../data/repo';
 import { GoalPicker } from '../ui/GoalPicker';
 import { PipInBottle } from '../components/PipInBottle';
+import { PrivacySheet } from './Privacy';
+import { defaultTextSize, isMinor } from '../domain/modes';
 
 type Step = 'welcome' | 'age' | 'goal' | 'vessels';
 const STEPS: Step[] = ['welcome', 'age', 'goal', 'vessels'];
@@ -22,11 +24,21 @@ export function Onboarding() {
     DEFAULT_VESSELS.map((v, i) => ({ key: v.id, name: v.name, ml: v.ml, selected: i < 3 }))
   );
   const [saving, setSaving] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     heading.current?.focus();
   }, [step]);
+
+  // Kid and older-adult modes start with larger text, from the moment the range is picked.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (ageBand) root.dataset.text = defaultTextSize(ageBand);
+    return () => {
+      delete root.dataset.text;
+    };
+  }, [ageBand]);
 
   const index = STEPS.indexOf(step);
   const chosenBand = ageBand ? band(ageBand) : null;
@@ -92,6 +104,10 @@ export function Onboarding() {
             <li>Your drinks stay on this phone. No account needed.</li>
             <li>No streaks to lose, and never a nudge to drink more than you need.</li>
           </ul>
+          <button type="button" className="link-btn" onClick={() => setPrivacyOpen(true)}>
+            How your data is handled
+          </button>
+          <PrivacySheet open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
         </>
       )}
 
@@ -103,7 +119,11 @@ export function Onboarding() {
               <input type="radio" name="age" value={b.id} checked={ageBand === b.id} onChange={() => pickBand(b.id)} />
               <span>
                 <span className="option-title">{b.label}</span>
-                {b.parentSetup && <span className="option-note">Set up by a parent or guardian</span>}
+                {b.parentSetup ? (
+                  <span className="option-note">Set up by a parent or guardian</span>
+                ) : (
+                  isMinor(b.id) && <span className="option-note">Everything stays on this phone</span>
+                )}
               </span>
             </label>
           ))}

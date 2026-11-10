@@ -160,3 +160,37 @@ def test_cue_tasks_need_an_answer_slot(tmp_path: Path) -> None:
 def test_real_content_has_no_hard_errors() -> None:
     root = Path(__file__).resolve().parent.parent / "content"
     assert validate(root).errors == []
+
+
+PRIVACY = {
+    "version": 1,
+    "updated": "2026-11-10",
+    "operator": "The WaterBuddy team, Ahmedabad",
+    "contact": "privacy@example.org",
+    "sections": [{"heading": "The short version", "paragraphs": ["Drinks stay on the phone."]}],
+    "review": {"status": "approved", "reviewer": "A Lawyer", "date": "2026-12-01"},
+}
+
+
+def write_privacy(tmp: Path, data: object) -> None:
+    (tmp / "privacy-notice.json").write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_approved_privacy_notice_passes_the_launch_gate(tmp_path: Path) -> None:
+    write_privacy(tmp_path, PRIVACY)
+    r = validate(tmp_path, strict=True)
+    assert r.errors == [] and r.warnings == []
+
+
+def test_draft_privacy_notice_warns_and_blocks_launch(tmp_path: Path) -> None:
+    write_privacy(tmp_path, {**PRIVACY, "operator": None, "contact": "", "review": {"status": "pending"}})
+    assert len(validate(tmp_path).warnings) == 3
+    errors = validate(tmp_path, strict=True).errors
+    assert any("operator" in e for e in errors)
+    assert any("contact" in e for e in errors)
+    assert any("legal check" in e for e in errors)
+
+
+def test_privacy_sections_need_text(tmp_path: Path) -> None:
+    write_privacy(tmp_path, {**PRIVACY, "sections": [{"heading": "Empty", "paragraphs": []}]})
+    assert any("section 1" in e for e in validate(tmp_path).errors)

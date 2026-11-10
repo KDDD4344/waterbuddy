@@ -76,12 +76,20 @@ export async function disableReminders(id: string): Promise<void> {
   }
 }
 
-export async function reminderPaused(id: string): Promise<boolean> {
+export type ReminderState = 'active' | 'paused' | 'gone' | 'unknown';
+
+/**
+ * What the server knows about this device's reminder. "gone" means the row was deleted,
+ * for example after 90 days without use (Phase 8 retention), so the app should show it off.
+ */
+export async function reminderState(id: string): Promise<ReminderState> {
   try {
     const res = await fetch(api(`/reminders/${id}`));
-    return res.ok && ((await res.json()) as { paused?: boolean }).paused === true;
+    if (res.status === 404) return 'gone';
+    if (!res.ok) return 'unknown';
+    return ((await res.json()) as { paused?: boolean }).paused === true ? 'paused' : 'active';
   } catch {
-    return false;
+    return 'unknown';
   }
 }
 

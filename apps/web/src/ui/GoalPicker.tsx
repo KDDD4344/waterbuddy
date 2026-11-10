@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { band, clampGoal, goalWarning, MEDICAL_NOTE, type AgeBandId } from '../domain/goals';
 import { formatAmount, type Units } from '../domain/units';
+import { ExternalLink } from './ParentGate';
 
 type Props = {
   bandId: AgeBandId;
@@ -56,9 +57,7 @@ export function GoalPicker({ bandId, valueMl, onChange, confirmed, onConfirmedCh
           {b.sources.map((s, i) => (
             <span key={s.url}>
               {i > 0 && '; '}
-              <a href={s.url} target="_blank" rel="noreferrer">
-                {s.title}
-              </a>
+              <ExternalLink href={s.url}>{s.title}</ExternalLink>
             </span>
           ))}
         </p>

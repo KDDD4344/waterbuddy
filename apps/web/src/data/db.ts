@@ -5,6 +5,7 @@ import type { AgeBandId } from '../domain/goals';
 import type { DayKey } from '../domain/dates';
 import type { Units } from '../domain/units';
 import type { TaskAnswer } from '../domain/tasks';
+import type { Contrast, TextSize } from '../domain/modes';
 
 export interface Profile {
   id: 'me';
@@ -29,6 +30,10 @@ export interface Profile {
   atlasSeen?: number;
   /** Daily reminder (Phase 6). `id` is this device's random key on the server. */
   reminders?: { on: boolean; time: string; id: string };
+  /** Text size (Phase 8). Unset means the age mode's default. */
+  textSize?: TextSize;
+  /** Stronger colours for low vision or bright sun (Phase 8). */
+  contrast?: Contrast;
 }
 
 export interface Vessel {

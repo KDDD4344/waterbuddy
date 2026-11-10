@@ -5,13 +5,22 @@ reminder time, the time zone and bedtime (for last call), and whether today's go
 already met. No drink amounts, no names, no age, no notes.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlmodel import Field, SQLModel
 
 
 def utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+# Rows nobody has used for this long are deleted (privacy notice, Phase 8).
+RETENTION = timedelta(days=90)
+
+
+def as_utc(t: datetime) -> datetime:
+    """SQLite hands datetimes back without a zone; they were stored in UTC."""
+    return t if t.tzinfo else t.replace(tzinfo=UTC)
 
 
 class Reminder(SQLModel, table=True):

@@ -11,6 +11,10 @@ import { useToday } from './hooks/useToday';
 import { deliverPostcards } from './data/repo';
 import { useReminderSync } from './hooks/useReminderSync';
 import { You } from './screens/You';
+import { ParentGateProvider } from './ui/ParentGate';
+import { needsParentCheck, textSizeOf } from './domain/modes';
+import { PerfMeter } from './ui/PerfMeter';
+import { perfRequested } from './lib/perf';
 import './ui.css';
 
 type Tab = 'today' | 'atlas' | 'journal' | 'you';
@@ -38,31 +42,46 @@ function Main({ profile }: { profile: Profile }) {
   useEffect(() => {
     void deliverPostcards();
   }, [today]);
+  // Text size and contrast go on <html> so sheets, dialogs and toasts follow them too.
+  const textSize = textSizeOf(profile);
+  const contrast = profile.contrast ?? 'standard';
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.text = textSize;
+    root.dataset.contrast = contrast;
+    return () => {
+      delete root.dataset.text;
+      delete root.dataset.contrast;
+    };
+  }, [textSize, contrast]);
   return (
-    <div className="app" data-motion={reduced ? 'reduce' : 'full'}>
-      {tab === 'today' && <Today profile={profile} />}
-      {tab === 'atlas' && <Atlas profile={profile} />}
-      {tab === 'journal' && <Journal profile={profile} />}
-      {tab === 'you' && <You profile={profile} />}
-      <nav className="tabbar" aria-label="Main">
-        <TabButton id="today" current={tab} onSelect={setTab} label="Today">
-          <path d="M6 3h12l-1.5 17a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" />
-          <path d="M6.5 11c2-1 3.5 1 5.5 0s3.5-1 5.5 0" />
-        </TabButton>
-        <TabButton id="atlas" current={tab} onSelect={setTab} label="Atlas">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M15.5 8.5l-2 5-5 2 2-5z" />
-        </TabButton>
-        <TabButton id="journal" current={tab} onSelect={setTab} label="Journal">
-          <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
-          <path d="M5 17a3 3 0 0 1 3-3h11M9 8h6" />
-        </TabButton>
-        <TabButton id="you" current={tab} onSelect={setTab} label="You">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
-        </TabButton>
-      </nav>
-    </div>
+    <ParentGateProvider active={needsParentCheck(profile.ageBand)}>
+      <div className="app" data-motion={reduced ? 'reduce' : 'full'}>
+        {tab === 'today' && <Today profile={profile} />}
+        {tab === 'atlas' && <Atlas profile={profile} />}
+        {tab === 'journal' && <Journal profile={profile} />}
+        {tab === 'you' && <You profile={profile} />}
+        <nav className="tabbar" aria-label="Main">
+          <TabButton id="today" current={tab} onSelect={setTab} label="Today">
+            <path d="M6 3h12l-1.5 17a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2z" />
+            <path d="M6.5 11c2-1 3.5 1 5.5 0s3.5-1 5.5 0" />
+          </TabButton>
+          <TabButton id="atlas" current={tab} onSelect={setTab} label="Atlas">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M15.5 8.5l-2 5-5 2 2-5z" />
+          </TabButton>
+          <TabButton id="journal" current={tab} onSelect={setTab} label="Journal">
+            <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
+            <path d="M5 17a3 3 0 0 1 3-3h11M9 8h6" />
+          </TabButton>
+          <TabButton id="you" current={tab} onSelect={setTab} label="You">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+          </TabButton>
+        </nav>
+        {perfRequested() && <PerfMeter />}
+      </div>
+    </ParentGateProvider>
   );
 }
 

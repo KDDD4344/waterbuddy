@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "updated": "2026-11-10",
+  "operator": null,
+  "contact": null,
+  "sections": [
+    {
+      "heading": "The short version",
+      "paragraphs": [
+        "Your drinks, goal, notes and postcards stay on this phone. We never receive them.",
+        "If you are 18 or over and turn on the daily reminder, our server keeps only what it needs to send it. Turning the reminder off deletes that.",
+        "No account, no ads, no tracking, and nothing is sold."
+      ]
+    },
+    {
+      "heading": "What stays on your phone",
+      "paragraphs": [
+        "Your age range (never a birthday), daily goal and its history, units, cups and bottles, every drink you log, field task answers, journal notes, postcards and settings.",
+        "This is stored in your browser's storage for this app. Clearing the app's data in your browser, or Delete everything in WaterBuddy, removes it. We can't see it or get it back for you."
+      ]
+    },
+    {
+      "heading": "The daily reminder (optional, 18 and over)",
+      "paragraphs": [
+        "To send one reminder a day, the WaterBuddy server keeps: a random code your phone made up, the push address your browser gives us, the reminder time, your time zone and bedtime, the last day your goal was met (a yes, never amounts), how many reminders in a row weren't opened (so they get quieter), and when you set it up.",
+        "The reminder travels through your phone's push service (Google, Apple or Mozilla, depending on your browser).",
+        "We delete all of it when you turn the reminder off or tap Delete everything, when your browser tells us the push address has stopped working, or after 90 days with no use."
+      ]
+    },
+    {
+      "heading": "Children and teenagers",
+      "paragraphs": [
+        "For anyone under 18, nothing leaves the phone: the daily reminder and the feedback link are switched off.",
+        "Under 14, a parent or guardian sets WaterBuddy up, and changing the goal, the age range or the data, or opening another website, asks a grown-up question first."
+      ]
+    },
+    {
+      "heading": "What we never do",
+      "paragraphs": [
+        "No advertising, analytics or tracking scripts. No location, contacts, camera or microphone. We don't sell or share data, and there is nothing to buy."
+      ]
+    },
+    {
+      "heading": "Your choices and rights",
+      "paragraphs": [
+        "See or copy everything: You, then Download my data. Correct anything: change it in the app. Erase everything: You, then Delete everything, which also deletes any reminder data on our server.",
+        "Questions or complaints go to the contact below. If you're not happy with our answer, you can complain to the Data Protection Board of India."
+      ]
+    },
+    {
+      "heading": "Where it runs",
+      "paragraphs": [
+        "The app is served by Vercel and the reminder server runs on Render. Their computers may be outside India.",
+        "If we ever change what we collect, the app will tell you before it happens."
+      ]
+    }
+  ],
+  "review": { "status": "pending", "reviewer": null, "date": null, "note": "Needs the India legal check (DPDP Act 2023 and DPDP Rules 2025) before launch." }
+}

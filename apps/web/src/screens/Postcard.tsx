@@ -6,6 +6,7 @@ import { dayLabel } from '../domain/dates';
 import { postcardById, ROUTE_1, type Postcard as Card } from '../domain/voyage';
 import { useToday } from '../hooks/useToday';
 import { PostcardPicture } from '../components/PostcardArt';
+import { ExternalLink } from '../ui/ParentGate';
 import { Sheet } from '../ui/Sheet';
 
 /** Opens a postcard: it unfolds from the message bottle, picture side first. */
@@ -79,9 +80,7 @@ export function Postcard({ card, record, back }: { card: Card; record?: Postcard
             <ul>
               {card.sources.map((s) => (
                 <li key={s.url}>
-                  <a href={s.url} target="_blank" rel="noopener noreferrer">
-                    {s.title}
-                  </a>
+                  <ExternalLink href={s.url}>{s.title}</ExternalLink>
                 </li>
               ))}
             </ul>

@@ -2,11 +2,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import pkg from './package.json' with { type: 'json' };
 
 // WaterBuddy web app: React + TypeScript, installable as a PWA.
 // The service worker (src/sw.ts) precaches the whole app, 3D scenes included, so it works
 // offline, and shows reminders sent by web push (Phase 6).
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
     VitePWA({

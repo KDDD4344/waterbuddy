@@ -13,6 +13,9 @@ import { useOfflineReady } from '../lib/offline';
 import { isInstalled, isIos } from '../lib/pwa';
 import { disableReminders } from '../lib/push';
 import { InstallSettings, RemindersSettings } from './RemindersSettings';
+import { PrivacySheet } from './Privacy';
+import { useParentGate } from '../ui/useParentGate';
+import { feedbackAllowed, textSizeOf, type TextSize } from '../domain/modes';
 
 export function You({ profile }: { profile: Profile }) {
   const today = useToday();
@@ -22,6 +25,9 @@ export function You({ profile }: { profile: Profile }) {
   const [vesselsOpen, setVesselsOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const guard = useParentGate();
+  const feedbackUrl = import.meta.env.VITE_FEEDBACK_URL;
   const fmt = (ml: number) => formatAmount(ml, profile.units, profile.cupMl);
   const b = band(profile.ageBand);
 
@@ -53,7 +59,7 @@ export function You({ profile }: { profile: Profile }) {
               {profile.goalSource === 'suggested' ? `Suggested for ages ${b.label}` : `Your own goal. Suggested for ages ${b.label}: ${fmt(b.suggestedMl)}`}
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={() => setGoalOpen(true)}>
+          <button type="button" className="btn ghost" onClick={() => guard(() => setGoalOpen(true), 'Goals for children are set by a grown-up.')}>
             Change
           </button>
         </div>
@@ -62,7 +68,13 @@ export function You({ profile }: { profile: Profile }) {
             <span className="setting-label">Age range</span>
             <span className="small muted block">Changing it updates the suggestion, not your goal.</span>
           </span>
-          <select value={profile.ageBand} onChange={(e) => updateProfile({ ageBand: e.target.value as AgeBandId })}>
+          <select
+            value={profile.ageBand}
+            onChange={(e) => {
+              const next = e.target.value as AgeBandId;
+              guard(() => void updateProfile({ ageBand: next }), 'The age range changes what WaterBuddy allows.');
+            }}
+          >
             {AGE_BANDS.map((x) => (
               <option key={x.id} value={x.id}>
                 {x.label}
@@ -109,6 +121,33 @@ export function You({ profile }: { profile: Profile }) {
             Edit
           </button>
         </div>
+      </section>
+
+      <section className="group" aria-labelledby="g-display">
+        <h2 id="g-display">Display</h2>
+        <label className="setting">
+          <span>
+            <span className="setting-label">Text size</span>
+            <span className="small muted block">Makes every word in WaterBuddy bigger.</span>
+          </span>
+          <select value={textSizeOf(profile)} onChange={(e) => updateProfile({ textSize: e.target.value as TextSize })}>
+            <option value="standard">Standard</option>
+            <option value="large">Large</option>
+            <option value="larger">Larger</option>
+          </select>
+        </label>
+        <label className="setting">
+          <span>
+            <span className="setting-label">High contrast</span>
+            <span className="small muted block">Darker text and lines. Helps in bright sun.</span>
+          </span>
+          <input
+            type="checkbox"
+            className="switch"
+            checked={profile.contrast === 'high'}
+            onChange={(e) => updateProfile({ contrast: e.target.checked ? 'high' : 'standard' })}
+          />
+        </label>
       </section>
 
       <section className="group" aria-labelledby="g-pip">
@@ -160,14 +199,29 @@ export function You({ profile }: { profile: Profile }) {
           <button type="button" className="btn ghost" onClick={() => setClearOpen(true)}>
             Clear today&rsquo;s drinks
           </button>
-          <button type="button" className="btn ghost" onClick={download}>
+          <button type="button" className="btn ghost" onClick={() => guard(() => void download(), 'This saves a file from WaterBuddy.')}>
             Download my data
           </button>
-          <button type="button" className="btn ghost danger" onClick={() => setDeleteOpen(true)}>
+          <button type="button" className="btn ghost danger" onClick={() => guard(() => setDeleteOpen(true), 'This deletes everything in WaterBuddy.')}>
             Delete everything
+          </button>
+          <button type="button" className="btn ghost" onClick={() => setPrivacyOpen(true)}>
+            Privacy notice
           </button>
         </div>
       </section>
+
+      {feedbackUrl && feedbackAllowed(profile.ageBand) && (
+        <section className="group" aria-labelledby="g-feedback">
+          <h2 id="g-feedback">Pilot feedback</h2>
+          <p className="small muted">
+            Something confusing, broken or slow? Tell us. The form is on another website, and what you type there goes to the WaterBuddy team.
+          </p>
+          <a className="btn ghost" href={feedbackUrl} target="_blank" rel="noopener noreferrer">
+            Send feedback<span className="sr-only"> (opens another website)</span>
+          </a>
+        </section>
+      )}
 
       <BuildInfo />
 
@@ -185,6 +239,8 @@ export function You({ profile }: { profile: Profile }) {
         initial={vessels ?? []}
         onSaved={() => toast({ text: 'Vessels saved.' })}
       />
+
+      <PrivacySheet open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
 
       <Sheet open={clearOpen} onClose={() => setClearOpen(false)} title="Clear today’s drinks?">
         <div className="sheet-form">
@@ -355,7 +411,7 @@ function BuildInfo() {
         <dt>Reminder server</dt>
         <dd>{api}</dd>
         <dt>Version</dt>
-        <dd>Phase 2 · Pip and the tidepool</dd>
+        <dd>{__APP_VERSION__} · pilot</dd>
       </dl>
     </section>
   );

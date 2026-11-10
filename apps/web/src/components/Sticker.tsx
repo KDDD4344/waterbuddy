@@ -167,7 +167,14 @@ type Props = { id: StickerId; size?: number; className?: string; title?: string 
 export function Sticker({ id, size = 48, className, title }: Props) {
   const s = SHAPES[id];
   return (
-    <svg className={className} width={size} height={size} viewBox="0 0 48 48" role="img" aria-label={title ?? `${s.name} sticker`}>
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      // An empty title means the sticker is decoration next to text that already says it.
+      {...(title === '' ? { 'aria-hidden': true } : { role: 'img', 'aria-label': title ?? `${s.name} sticker` })}
+    >
       <g fill="var(--wb-ochre)" opacity="0.7" transform="translate(2 2)">
         {s.fill}
       </g>

@@ -142,6 +142,8 @@ def set_today(device_id: str, body: TodayIn, session: SessionDep) -> Response:
         r.done_day = body.day
     elif r.done_day == body.day:
         r.done_day = None
+    # The app is in use, so the row is kept (see RETENTION).
+    r.updated_at = utcnow()
     session.add(r)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -151,6 +153,7 @@ def set_today(device_id: str, body: TodayIn, session: SessionDep) -> Response:
 def feedback(device_id: str, body: FeedbackIn, session: SessionDep) -> Response:
     r = _get(session, device_id)
     apply_feedback(r, body.action)
+    r.updated_at = utcnow()
     session.add(r)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -171,4 +174,4 @@ def trigger_send_due(
     from .scheduler import send_due
 
     result = send_due(session, datetime.now(UTC), make_sender(settings))
-    return {"sent": result.sent, "gone": result.gone, "failed": result.failed}
+    return {"sent": result.sent, "gone": result.gone, "failed": result.failed, "purged": result.purged}

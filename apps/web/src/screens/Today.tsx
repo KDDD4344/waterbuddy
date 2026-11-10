@@ -140,8 +140,8 @@ export function Today({ profile }: { profile: Profile }) {
 
       <section aria-label="Log a drink" className="log-grid">
         {(vessels ?? []).map((v) => (
-          <button key={v.id} type="button" className="log-btn" onClick={() => log(v.ml, v)} aria-label={`Log ${spokenAmount(v.ml, profile.units, profile.cupMl)}, ${v.name}`}>
-            <span className="log-amount">+ {fmt(v.ml)}</span>
+          <button key={v.id} type="button" className="log-btn" onClick={() => log(v.ml, v)} aria-label={`Log ${fmt(v.ml)}, ${v.name}`}>
+            <span className="log-amount">+ {fmt(v.ml)}</span>{' '}
             <span className="log-name">{v.name}</span>
           </button>
         ))}
@@ -161,13 +161,12 @@ export function Today({ profile }: { profile: Profile }) {
               const v = vessels?.find((x) => x.id === l.vesselId);
               return (
                 <li key={l.id}>
-                  <button type="button" className="entry" onClick={() => setEditing(l)} aria-label={`${timeLabel(l.at)}, ${spokenAmount(l.ml, profile.units, profile.cupMl)}${v ? `, ${v.name}` : ''}. Edit`}>
-                    <span className="entry-time">{timeLabel(l.at)}</span>
-                    <span className="entry-amount">{fmt(l.ml)}</span>
+                  <button type="button" className="entry" onClick={() => setEditing(l)}>
+                    <span className="entry-time">{timeLabel(l.at)}</span>{' '}
+                    <span className="entry-amount">{fmt(l.ml)}</span>{' '}
                     <span className="entry-name">{v?.name ?? 'Custom'}</span>
-                    <span className="entry-edit" aria-hidden="true">
-                      Edit
-                    </span>
+                    {' '}
+                    <span className="entry-edit">Edit</span>
                   </button>
                 </li>
               );

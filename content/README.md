@@ -27,3 +27,7 @@ python tools/validate_content.py --strict # release mode: every card must be sou
 ```
 
 Route I has six cards (Loktak, Umngot, Majuli, Sundarbans, Chilika, Vembanad). Every fact on them was checked against the listed source pages on 10 Nov 2026, but none has a named reviewer yet, so `--strict` fails until a reviewer approves them. The app shows unreviewed cards with a short note under their sources.
+
+## Privacy notice (`privacy-notice.json`)
+
+The notice people read in the app (Privacy, from the welcome screen and from You). Plain words, short sections. `operator` and `contact` stay `null` until the team decides them; the app then says they'll be added before launch. `--strict` fails until both are filled in and `review.status` is `approved` after the India legal check (`docs/privacy.md`). If what the server stores ever changes, update this file, `docs/privacy.md` and the version number together.

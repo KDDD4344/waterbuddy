@@ -31,14 +31,16 @@
   --wb-font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, Menlo, monospace;
   --wb-font-hand: 'Kalam', cursive;
 
-  /* Type scale (default mode). Kid and older-adult modes scale these in Phase 8. */
-  --wb-text-number: 78px;
-  --wb-text-h1: 32px;
-  --wb-text-h2: 24px;
-  --wb-text-body: 16px;
-  --wb-text-secondary: 14px;
-  --wb-text-label: 12.5px; /* nothing smaller than 12px anywhere */
-  --wb-text-button: 16px;
+  /* Type scale. --wb-scale is set by the Text size setting (Phase 8); every font size in
+     the app multiplies by it. Kid and older-adult modes start at "large". */
+  --wb-scale: 1;
+  --wb-text-number: calc(78px * var(--wb-scale));
+  --wb-text-h1: calc(32px * var(--wb-scale));
+  --wb-text-h2: calc(24px * var(--wb-scale));
+  --wb-text-body: calc(16px * var(--wb-scale));
+  --wb-text-secondary: calc(14px * var(--wb-scale));
+  --wb-text-label: calc(12.5px * var(--wb-scale)); /* nothing smaller than 12px anywhere */
+  --wb-text-button: calc(16px * var(--wb-scale));
 
   /* Space, shape, touch */
   --wb-space-1: 4px;
@@ -65,4 +67,22 @@
     --wb-dur-base: 1ms;
     --wb-dur-slow: 1ms;
   }
+}
+
+/* Text size (Phase 8). Set on <html> so sheets and toasts scale too. */
+:root[data-text='large'] {
+  --wb-scale: 1.15;
+}
+:root[data-text='larger'] {
+  --wb-scale: 1.3;
+}
+
+/* Higher contrast (Phase 8): muted text becomes full ink, rules and borders darken. */
+:root[data-contrast='high'] {
+  --wb-ink: #0a1c22; /* 15.2:1 on paper */
+  --wb-ink-muted: #13303a; /* 12.1:1 on paper */
+  --wb-rule: #8a8272; /* 3.3:1, enough for borders (WCAG 1.4.11) */
+  --wb-rust: #7d3323; /* 7.7:1 on paper */
+  --wb-mist: #d4ece8; /* 9.9:1 on deep */
+  --wb-shallows: #a9d6cf; /* 7.7:1 on deep */
 }

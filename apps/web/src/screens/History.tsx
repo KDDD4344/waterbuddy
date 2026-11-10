@@ -4,7 +4,7 @@ import { db, type DrinkLog, type Profile } from '../data/db';
 import { goalOn, logsForDay, removeLog, restoreLog, totalsForDays, updateLog } from '../data/repo';
 import { dayKey, dayLabel, lastNDays, timeLabel, type DayKey } from '../domain/dates';
 import { progress } from '../domain/progress';
-import { formatAmount, spokenAmount } from '../domain/units';
+import { formatAmount } from '../domain/units';
 import { useToday } from '../hooks/useToday';
 import { useToast } from '../ui/toast';
 import { EditLogSheet } from './LogSheets';
@@ -103,12 +103,10 @@ function DayEntries({ day, profile, onEdit }: { day: DayKey; profile: Profile; o
     <ul className="day-entries">
       {logs.map((l) => (
         <li key={l.id}>
-          <button type="button" className="entry" onClick={() => onEdit(l)} aria-label={`${timeLabel(l.at)}, ${spokenAmount(l.ml, profile.units, profile.cupMl)}. Edit`}>
-            <span className="entry-time">{timeLabel(l.at)}</span>
-            <span className="entry-amount">{formatAmount(l.ml, profile.units, profile.cupMl)}</span>
-            <span className="entry-edit" aria-hidden="true">
-              Edit
-            </span>
+          <button type="button" className="entry" onClick={() => onEdit(l)}>
+            <span className="entry-time">{timeLabel(l.at)}</span>{' '}
+            <span className="entry-amount">{formatAmount(l.ml, profile.units, profile.cupMl)}</span>{' '}
+            <span className="entry-edit">Edit</span>
           </button>
         </li>
       ))}

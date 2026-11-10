@@ -7,7 +7,7 @@ async function onboard(page: Page) {
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('button', { name: 'Start filling' }).click();
-  await expect(page.getByRole('button', { name: /Log 250 millilitres/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Log 250 ml/ })).toBeVisible();
 }
 
 const stat = (page: Page) => page.getByLabel("Today's progress");
@@ -31,7 +31,7 @@ test('the app is installable: manifest with icons', async ({ page, request }) =>
 
 test('a logged drink survives closing and reopening the app', async ({ page }) => {
   await onboard(page);
-  await page.getByRole('button', { name: /Log 250 millilitres/ }).click();
+  await page.getByRole('button', { name: /Log 250 ml/ }).click();
   await expect(stat(page)).toContainText('250 millilitres of 2 litres');
   await page.reload();
   await expect(stat(page)).toContainText('250 millilitres of 2 litres');
@@ -40,7 +40,7 @@ test('a logged drink survives closing and reopening the app', async ({ page }) =
 test('logging takes under 2 seconds from tap to updated total', async ({ page }) => {
   await onboard(page);
   const start = Date.now();
-  await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('500 millilitres of 2 litres');
   expect(Date.now() - start).toBeLessThan(2000);
 });
@@ -61,7 +61,7 @@ test('Pip’s 3D tidepool loads after the numbers, and a pour plays without bloc
   await page.waitForTimeout(800);
   await page.screenshot({ path: info.outputPath('today-3d-idle.png') });
 
-  await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('500 millilitres of 2 litres');
   await page.waitForTimeout(700);
   await page.screenshot({ path: info.outputPath('today-3d-pouring.png') });
@@ -77,12 +77,12 @@ test('works in airplane mode after the first visit', async ({ page, context }) =
   });
   // Make sure the service worker controls the page before going offline.
   await page.reload();
-  await expect(page.getByRole('button', { name: /Log 250 millilitres/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Log 250 ml/ })).toBeVisible();
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('button', { name: /Log 250 millilitres/ })).toBeVisible();
-  await page.getByRole('button', { name: /Log 250 millilitres/ }).click();
+  await expect(page.getByRole('button', { name: /Log 250 ml/ })).toBeVisible();
+  await page.getByRole('button', { name: /Log 250 ml/ }).click();
   await expect(stat(page)).toContainText('250 millilitres of 2 litres');
   await context.setOffline(false);
 });
@@ -130,7 +130,7 @@ test('night voyage: the goal corks the bottle, night falls, and a postcard washe
   test.setTimeout(90_000);
   await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
   await onboard(page);
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('Bottle full and corked');
   await page.waitForTimeout(4500); // pour, cheer, then the cork
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -184,12 +184,12 @@ test('the Waterverse: Pip sails to new islands, the fog lifts, and every place i
   // Two goal days, then the next morning.
   await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
   await onboard(page);
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('Bottle full and corked');
   await page.clock.setFixedTime(new Date('2026-11-11T10:00:00'));
   await page.reload();
   await expect(page.getByRole('button', { name: /message washed up/ })).toBeVisible();
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('Bottle full and corked');
   await page.clock.setFixedTime(new Date('2026-11-12T08:00:00'));
   await page.reload();
@@ -304,7 +304,7 @@ test('reminders: turn on, the server learns only time, zone, bedtime and goal-me
 
   // Fill the bottle: the server hears only "goal met today".
   await page.getByRole('button', { name: 'Today', exact: true }).click();
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('Bottle full and corked');
   await expect.poll(async () => (await (await request.get(`${API}/reminders/${id}`)).json()).goal_met_day).toBe('2026-11-10');
 
@@ -357,7 +357,7 @@ test('a reminder push is shown only before the goal, in gentle words', async ({ 
   // After last call (20:30 with the default bedtime) nothing is shown.
   expect(await pushAt('2026-11-10T21:00:00')).toEqual([]);
 
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 millilitres/ }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
   await expect(stat(page)).toContainText('Bottle full and corked');
   expect(await pushAt('2026-11-10T12:00:00')).toEqual([]);
 });
