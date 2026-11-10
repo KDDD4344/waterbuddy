@@ -20,4 +20,5 @@ jobs:
           API: ${{ vars.WB_API_URL }}
           TOKEN: ${{ secrets.WB_CRON_TOKEN }}
         # The free Render plan sleeps when idle, so allow time for it to wake.
-        run: curl -fsS --retry 2 --max-time 120 -X POST -H "X-Cron-Token: $TOKEN" "$API/internal/send-due"
+        run: |
+          curl -fsS --retry 2 --max-time 120 -X POST -H "X-Cron-Token: $TOKEN" "$API/internal/send-due"
