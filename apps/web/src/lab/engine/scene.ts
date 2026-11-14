@@ -181,6 +181,8 @@ export class HeroScene {
       quality?: Quality;
       maxDpr?: number;
       buddyLite?: boolean;
+      /** False keeps the camera still (taps only), for a stage inside a scrolling screen. */
+      explore?: boolean;
     }
   ) {
     this.reduced = opts.reduced;
@@ -273,6 +275,7 @@ export class HeroScene {
       onExplore: () => this.maybeCurious(this.orbit.az > 0 ? -1 : 1)
     });
     this.orbit.reduced = this.reduced;
+    this.orbit.locked = opts.explore === false;
     this.callbacks = opts.callbacks;
     this.applyReduced();
     void this.buddy.load();
@@ -427,6 +430,12 @@ export class HeroScene {
   private maybeCurious(side: number) {
     if (this.pouring || this.time - this.curiousAt < 4) return;
     if (this.reactTo('curious', side)) this.curiousAt = this.time;
+  }
+
+  /** Shift the framing: where the camera looks (x right, y up) and how far back it stands. */
+  setFraming(x: number, y: number, dist = 0) {
+    this.orbit.frameOffset.set(x, y, 0);
+    this.orbit.frameDist = dist;
   }
 
   view(daz: number, dpol: number, zoom = 1) {

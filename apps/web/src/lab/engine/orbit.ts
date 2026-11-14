@@ -40,6 +40,9 @@ export class Orbit {
   reduced = false;
   /** Extra distance for portrait screens, so the scene still fits. */
   fit = 0;
+  /** A host's framing: shifts where the camera looks (e.g. Ripple clear of text on Today). */
+  frameOffset = new THREE.Vector3();
+  frameDist = 0;
   /** Where the drag wants the view; az and pol ease toward these. */
   private azGoal = this.az;
   private polGoal = this.pol;
@@ -50,6 +53,11 @@ export class Orbit {
   private trail: { t: number; az: number; pol: number }[] = [];
   /** Set while a drag is past the tap threshold (so a tap never also turns the view). */
   dragging = false;
+  /**
+   * Locked (Today's stage): taps still reach the scene, but drags and the wheel are left to
+   * the page, so swiping over the pond scrolls the screen instead of turning the view.
+   */
+  locked = false;
   private idle = 10;
   private pointers = new Map<
     number,
@@ -116,6 +124,11 @@ export class Orbit {
   private down = (e: PointerEvent) => {
     // Primary button only: right-click and middle-click don't turn the view.
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (this.locked) {
+      // Only watch for a tap; never capture, so the page keeps the gesture.
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now(), touch: e.pointerType !== 'mouse' });
+      return;
+    }
     // Capture can throw if the pointer is already gone (a cancelled touch); input still works.
     try {
       this.el.setPointerCapture?.(e.pointerId);
@@ -151,6 +164,10 @@ export class Orbit {
       this.opts.onHover?.(this.hover);
     }
     if (!p) return;
+    if (this.locked) {
+      if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > (p.touch ? 12 : 6)) p.drag = true;
+      return;
+    }
     const dx = e.clientX - p.x;
     const dy = e.clientY - p.y;
     p.x = e.clientX;
@@ -222,6 +239,7 @@ export class Orbit {
   };
 
   private wheel = (e: WheelEvent) => {
+    if (this.locked) return;
     e.preventDefault();
     // Lines (Firefox) to pixels; a trackpad pinch arrives as a ctrl-wheel with small steps.
     const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
@@ -338,8 +356,8 @@ export class Orbit {
       az -= this.lean.x * 0.05;
       pol += this.lean.y * 0.025;
     }
-    const d = this.dist + this.fit + extraDist;
-    const tg = this.tmpTarget;
+    const d = this.dist + this.fit + extraDist + this.frameDist;
+    const tg = this.tmpTarget.add(this.frameOffset);
     camera.position.set(
       tg.x + d * Math.sin(pol) * Math.sin(az),
       tg.y + d * Math.cos(pol),

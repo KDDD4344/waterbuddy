@@ -40,8 +40,9 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2,glb}'],
-        // Lab-only files stay out of the app's offline copy, including Ripple's GLB until the app uses it.
-        globIgnores: ['lab/**', 'assets/lab-*', 'models/buddy/**'],
+        // The app works offline with Ripple: the compressed GLB is cached; the 2.3 MB original (only a
+        // fallback) and the lab's own page are not.
+        globIgnores: ['lab/**', 'assets/lab-*', 'models/buddy/ripple-waterbuddy.glb'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
       },
       devOptions: { enabled: false }

@@ -3,7 +3,7 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!assets/|icons/|lab/|lab$|sw.js|workbox-|manifest.webmanifest|favicon.svg).*)", "destination": "/index.html" }],
+  "rewrites": [{ "source": "/((?!assets/|icons/|models/|lab/|lab$|sw.js|workbox-|manifest.webmanifest|favicon.svg|ripple-poster.webp).*)", "destination": "/index.html" }],
   "headers": [
     { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
     { "source": "/manifest.webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] },

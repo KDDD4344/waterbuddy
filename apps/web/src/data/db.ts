@@ -24,6 +24,8 @@ export interface Profile {
   reduceMotion?: boolean;
   /** Usual sleep time "HH:MM", from the last-call field task. Reminders stop 2 hours before (Phase 6). */
   bedtime?: string;
+  /** Usual wake-up time "HH:MM" (V1). No reminders before it. */
+  wake?: string;
   /** Preferred reminder window from field task 9, or "none". */
   reminderPref?: string;
   /** How many Waterverse islands the person has watched clear (Phase 5). */
@@ -95,6 +97,15 @@ export interface PostcardRecord {
   readAt: string | null;
 }
 
+/** What someone found in Ripple's spring on a day (the daily quest is to find all four). */
+export interface Discovery {
+  day: DayKey;
+  /** Kinds found: 'ripple', 'water', 'pad', 'spout'. */
+  found: string[];
+  /** When all four were found, if they were. */
+  completedAt: string | null;
+}
+
 export class WaterBuddyDB extends Dexie {
   profile!: Table<Profile, 'me'>;
   vessels!: Table<Vessel, string>;
@@ -103,6 +114,7 @@ export class WaterBuddyDB extends Dexie {
   tasks!: Table<TaskRecord, string>;
   notes!: Table<Note, string>;
   postcards!: Table<PostcardRecord, string>;
+  discoveries!: Table<Discovery, DayKey>;
 
   constructor(name = 'waterbuddy') {
     super(name);
@@ -120,6 +132,10 @@ export class WaterBuddyDB extends Dexie {
     // Phase 4: postcards from the night voyage.
     this.version(3).stores({
       postcards: 'id, day'
+    });
+    // V1: Ripple's spring (Atlas) remembers what was found each day.
+    this.version(4).stores({
+      discoveries: 'day'
     });
   }
 }

@@ -29,9 +29,20 @@ function lastCallMinutes(bedtime: string): number {
 }
 
 /** Why a reminder time won't work, or null. */
-export function reminderTimeProblem(time: string, bedtime = DEFAULT_BEDTIME): string | null {
+export const DEFAULT_WAKE = '07:00';
+
+/**
+ * Quiet hours: from last call (two hours before sleep) until the person wakes up. Nothing
+ * is sent then, and never before 6 am whatever the wake time.
+ */
+export function quietHours(bedtime = DEFAULT_BEDTIME, wake = DEFAULT_WAKE): { from: string; until: string } {
+  return { from: lastCallTime(bedtime), until: minutes(wake) < 6 * 60 ? '06:00' : wake };
+}
+
+export function reminderTimeProblem(time: string, bedtime = DEFAULT_BEDTIME, wake?: string): string | null {
   if (!/^\d{2}:\d{2}$/.test(time)) return 'Pick a time.';
   if (minutes(time) < 6 * 60) return 'Reminders start from 6 am.';
+  if (wake && /^\d{2}:\d{2}$/.test(wake) && minutes(time) < minutes(wake)) return 'That’s before you wake up. Pick a later time.';
   if (minutes(time) + WINDOW_MIN > lastCallMinutes(bedtime)) return 'That’s too close to last call. Pick an earlier time.';
   return null;
 }
@@ -42,9 +53,9 @@ export function reminderTimeProblem(time: string, bedtime = DEFAULT_BEDTIME): st
  */
 export function reminderText(cue: string | null, day: string): { title: string; body: string } {
   const lines = [
-    'Pip’s bottle has room for a glass whenever you’re ready.',
+    'Ripple’s spring has room for a glass whenever you’re ready.',
     'A good moment for a glass of water?',
-    'Pip is ready for a refill when you are.'
+    'Ripple is ready for a refill when you are.'
   ];
   const n = Number(day.replace(/-/g, '')) % (cue ? lines.length + 1 : lines.length);
   return { title: 'WaterBuddy', body: cue && n === lines.length ? `Your cue: ${cue}` : lines[n]! };

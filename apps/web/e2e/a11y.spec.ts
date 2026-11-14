@@ -102,8 +102,12 @@ test('a postcard passes axe, front and back', async ({ page }) => {
   test.setTimeout(90_000);
   await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
   await onboard(page);
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
-  await expect(page.getByLabel("Today's progress")).toContainText('Bottle full and corked');
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: /Log 500 ml/ }).click();
+    // Taps at a person's pace: a repeat within 0.6 s counts as an accidental double tap.
+    await page.waitForTimeout(700);
+  }
+  await expect(page.getByLabel("Today's progress")).toContainText('Goal reached');
   await page.clock.setFixedTime(new Date('2026-11-11T07:30:00'));
   await page.reload();
   await page.getByRole('button', { name: 'A message washed up. Open it' }).click({ force: true });

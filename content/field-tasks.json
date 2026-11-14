@@ -53,7 +53,7 @@
       "type": "choice",
       "title": "What made it easy yesterday?",
       "body": "Noticing what works is how routines get easier.",
-      "options": ["My cue", "Having a bottle nearby", "Pip's bottle on my screen", "Nothing in particular"],
+      "options": ["My cue", "Having a bottle nearby", "Ripple's spring on my screen", "Nothing in particular"],
       "allow_own": true,
       "sticker": "feather"
     },
@@ -96,7 +96,7 @@
       "kind": "Reflect",
       "type": "choice",
       "title": "When would a reminder help most?",
-      "body": "Later on, Pip can send one gentle reminder a day. Pick the time it would actually help, or none.",
+      "body": "Later on, WaterBuddy can send one gentle reminder a day. Pick the time it would actually help, or none.",
       "options": ["Morning", "Around lunch", "Mid-afternoon", "Early evening", "I don't want reminders"],
       "allow_own": false,
       "sticker": "bell"
@@ -141,7 +141,7 @@
       "kind": "Environment",
       "type": "time",
       "title": "Choose your last call",
-      "body": "Pip stops asking two hours before you sleep, so drinking late never keeps you up. When do you usually go to sleep?",
+      "body": "WaterBuddy stops asking two hours before you sleep, so drinking late never keeps you up. When do you usually go to sleep?",
       "default": "22:30",
       "sticker": "owl"
     },

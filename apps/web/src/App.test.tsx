@@ -155,7 +155,7 @@ describe('Phase 4 night voyage and postcards', () => {
     expect(screen.queryByRole('button', { name: /message washed up/ })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Journal' }));
-    expect(await screen.findByText(/1 of 6 · a card washes up/)).toBeInTheDocument();
+    expect(await screen.findByText(/1 of 6 · Ripple sends a card/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Loktak Lake' })).toBeInTheDocument();
   });
 
@@ -166,7 +166,7 @@ describe('Phase 4 night voyage and postcards', () => {
     expect(screen.queryByRole('button', { name: /message washed up/ })).not.toBeInTheDocument();
   });
 
-  it('after last call Pip stops counting glasses: "We’ll sail tomorrow"', async () => {
+  it('after last call Today stops counting down: "More tomorrow"', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     const late = new Date();
     late.setHours(21, 30, 0, 0);
@@ -174,43 +174,38 @@ describe('Phase 4 night voyage and postcards', () => {
     await startedYesterday(0);
     render(<App />);
     const stat = await screen.findByLabelText("Today's progress");
-    expect(await within(stat).findByText(/last call was 8:30 pm\. We’ll sail tomorrow\./i)).toBeInTheDocument();
-    expect(within(stat).queryByText(/glasses to go/)).not.toBeInTheDocument();
+    expect(await within(stat).findByText(/last call was 8:30 pm\. More tomorrow\./i)).toBeInTheDocument();
+    expect(within(stat).queryByText(/to go/)).not.toBeInTheDocument();
   });
 
-  it('reaching the goal corks the bottle', async () => {
+  it('reaching the goal says so, and Ripple will send a postcard', async () => {
     await startedYesterday(0);
     await addLog(2000);
     render(<App />);
     const stat = await screen.findByLabelText("Today's progress");
-    expect(await within(stat).findByText(/Bottle full and corked/)).toBeInTheDocument();
+    expect(await within(stat).findByText(/Goal reached · 100% · Ripple sets off tonight/)).toBeInTheDocument();
   });
 });
 
-describe('Phase 5 the Waterverse', () => {
-  it('lists every place, clear or in fog, and opens a clear island\'s postcard without 3D', async () => {
+describe('V1 Atlas: Ripple’s spring', () => {
+  it('without 3D it says so, still pours exactly one glass, and shows today’s quest', async () => {
     const y = new Date();
     y.setDate(y.getDate() - 2);
     await completeOnboarding(
       { ageBand: '18-64', goalMl: 2000, goalSource: 'suggested', units: 'ml', cupMl: 240, parentConfirmed: false, vessels: [{ name: 'Tumbler', ml: 250 }] },
       y
     );
-    await addLog(2000, null, new Date(y.getTime() + 60 * 60 * 1000));
     const user = userEvent.setup();
     render(<App />);
     await user.click(await screen.findByRole('button', { name: 'Atlas' }));
-    expect(await screen.findByRole('heading', { name: 'The Waterverse' })).toBeInTheDocument();
-    const list = screen.getByRole('list');
-    const items = within(list).getAllByRole('button');
-    expect(items).toHaveLength(6);
-    expect(items[0]).toHaveTextContent('Loktak Lake');
-    expect(items[1]).toHaveTextContent('Next on the route');
-    expect(items[2]).toHaveTextContent('Still in the fog');
-    expect(screen.getByText(/1 of 6 out of the fog/)).toBeInTheDocument();
-
-    await user.click(items[0]!);
-    await user.click(screen.getByRole('button', { name: 'Read the postcard' }));
-    expect(within(await screen.findByRole('dialog')).getByRole('heading', { name: 'Postcard 1 of 6' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'The spring' })).toBeInTheDocument();
+    // jsdom has no WebGL: the still picture stays and the screen explains why.
+    expect(screen.getByText(/can’t show 3D graphics/)).toBeInTheDocument();
+    expect(within(screen.getByLabelText('Today’s quest')).getByText('0 of 4')).toBeInTheDocument();
+    // An accidental double tap logs one glass, not two.
+    await user.dblClick(screen.getByRole('button', { name: 'Pour 250 ml' }));
+    expect(await screen.findByText(/250 ml logged\. 250 ml of 2 L\./)).toBeInTheDocument();
+    await waitFor(async () => expect((await db.logs.toArray()).map((l) => l.ml)).toEqual([250]));
   });
 });
 

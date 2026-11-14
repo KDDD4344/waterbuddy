@@ -3,7 +3,6 @@ import { AGE_BANDS, band, goalWarning, type AgeBandId } from '../domain/goals';
 import { DEFAULT_CUP_ML, type Units } from '../domain/units';
 import { completeOnboarding, DEFAULT_VESSELS } from '../data/repo';
 import { GoalPicker } from '../ui/GoalPicker';
-import { PipInBottle } from '../components/PipInBottle';
 import { PrivacySheet } from './Privacy';
 import { defaultTextSize, isMinor } from '../domain/modes';
 
@@ -78,7 +77,7 @@ export function Onboarding() {
   };
 
   const titles: Record<Step, string> = {
-    welcome: 'Hi, I’m Pip',
+    welcome: 'Hi, I’m Ripple',
     age: 'How old is the person using WaterBuddy?',
     goal: 'A daily goal to start with',
     vessels: 'What do you usually drink from?'
@@ -95,10 +94,10 @@ export function Onboarding() {
 
       {step === 'welcome' && (
         <>
-          <PipInBottle className="hero" fill={0.15} />
+          <img className="hero hero-ripple" src="/ripple-poster.webp" alt="Ripple, a small water sprite, sitting on a mossy rock in a forest spring." />
           <p className="lead">
-            I keep the day&rsquo;s water in my bottle. Fill it up with me, one glass at a time, and tomorrow I&rsquo;ll have something to show
-            you.
+            I live in a little forest spring. Log your water with me, one glass at a time, and the spring fills up. Reach your goal and
+            tomorrow I&rsquo;ll have a postcard for you.
           </p>
           <ul className="promises">
             <li>Your drinks stay on this phone. No account needed.</li>

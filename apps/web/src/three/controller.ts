@@ -17,6 +17,12 @@ export interface PourEvent {
   milestone: number | null;
   /** The goal was already met before this drink: record it, but no celebration (safety rule 1). */
   overGoal: boolean;
+  /** Totals in ml, for Ripple's spring (the level and the pour). */
+  fromMl?: number;
+  toMl?: number;
+  goalMl?: number;
+  /** This drink reached the goal for the first time today: Ripple's one celebration. */
+  celebrate?: boolean;
 }
 
 const silent: Sound = { enabled: false, pour() {}, tone() {}, chord() {} };

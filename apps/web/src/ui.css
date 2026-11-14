@@ -1912,3 +1912,322 @@ img.album-art {
   color: var(--wb-foam);
   min-height: 32px;
 }
+
+/* ---- V1: Ripple's spring (shared by Today and Atlas) ---- */
+.pond {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #49634a;
+}
+.pond-poster,
+.pond-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pond-poster {
+  object-fit: cover;
+  object-position: 42% 60%;
+  transition: opacity var(--wb-dur-slow) var(--wb-ease-out);
+}
+.pond-canvas {
+  display: block;
+  opacity: 0;
+  transition: opacity var(--wb-dur-slow) var(--wb-ease-out);
+}
+.pond[data-live] .pond-canvas {
+  opacity: 1;
+}
+.pond[data-live] .pond-poster {
+  opacity: 0;
+}
+/* Today: a swipe over the spring scrolls the screen; taps still reach Ripple and the water. */
+.pond-today .pond-canvas {
+  touch-action: pan-y;
+}
+.pond-atlas .pond-canvas {
+  touch-action: none;
+  cursor: grab;
+}
+.pond-arriving {
+  position: absolute;
+  left: 50%;
+  bottom: var(--wb-space-5);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wb-card) 92%, transparent);
+  font-size: var(--wb-text-secondary);
+  white-space: nowrap;
+}
+/* The numbers sit over the scene (stage-top already carries a paper wash behind them). */
+.today .stage-top {
+  z-index: 1;
+}
+
+.tip {
+  padding: var(--wb-space-3) var(--wb-space-4);
+  border-radius: var(--wb-radius-m);
+  background: var(--wb-card);
+  border: 1px dashed var(--wb-rule);
+}
+.tip p:last-child {
+  margin: 4px 0 0;
+}
+
+/* Atlas: the spring fills the screen above the tab bar. */
+.spring-screen {
+  min-height: 0;
+  position: fixed;
+  inset: 0 0 calc(68px + env(safe-area-inset-bottom, 0px)) 0;
+  max-width: none;
+  padding: 0;
+  display: block;
+}
+.spring-stage {
+  position: absolute;
+  inset: 0;
+}
+.spring-stage:focus-visible {
+  outline: 3px solid var(--wb-ochre);
+  outline-offset: -3px;
+}
+.spring-top {
+  position: absolute;
+  top: max(var(--wb-space-3), env(safe-area-inset-top, 0px));
+  left: var(--wb-space-3);
+  right: var(--wb-space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--wb-space-2);
+  pointer-events: none;
+}
+.spring-top > * {
+  pointer-events: auto;
+}
+.spring-title {
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wb-card) 92%, transparent);
+  font-family: var(--wb-font-display);
+  font-size: calc(20px * var(--wb-scale));
+  font-weight: 400;
+}
+.quest {
+  max-width: 300px;
+  padding: 8px 12px 10px;
+  border-radius: var(--wb-radius-m);
+  background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+  box-shadow: 0 8px 24px rgba(10, 37, 48, 0.16);
+}
+.quest-line {
+  margin: 2px 0 6px;
+  font-size: var(--wb-text-secondary);
+}
+.quest-marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--wb-text-label);
+}
+.quest-marks li {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--wb-ink-muted);
+  color: var(--wb-ink-muted);
+}
+.quest-marks li[data-found] {
+  border: 1px solid var(--wb-deep);
+  background: var(--wb-deep);
+  color: #fff;
+}
+.coach {
+  position: absolute;
+  left: var(--wb-space-3);
+  bottom: calc(72px + var(--wb-space-3));
+  width: min(320px, calc(100% - 2 * var(--wb-space-3)));
+  padding: var(--wb-space-3) var(--wb-space-4) var(--wb-space-2);
+  border-radius: var(--wb-radius-m);
+  background: color-mix(in srgb, var(--wb-card) 95%, transparent);
+  box-shadow: 0 8px 24px rgba(10, 37, 48, 0.18);
+}
+.coach ul {
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--wb-text-secondary);
+}
+.coach li {
+  position: relative;
+  padding: 3px 0 3px 18px;
+}
+.coach li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--wb-deep);
+}
+.coach li[data-done]::before {
+  background: var(--wb-deep);
+}
+.spring-off {
+  position: absolute;
+  left: var(--wb-space-3);
+  right: var(--wb-space-3);
+  bottom: calc(72px + var(--wb-space-3));
+  max-width: 420px;
+}
+.spring-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-2);
+  padding: var(--wb-space-3);
+  pointer-events: none;
+}
+.spring-dock > * {
+  pointer-events: auto;
+}
+.spring-total {
+  margin: 0 auto 0 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wb-card) 92%, transparent);
+  font-size: var(--wb-text-secondary);
+}
+.spring-pour {
+  min-height: 52px;
+}
+.btn.small {
+  min-height: 44px;
+  padding: 0 var(--wb-space-3);
+  background: color-mix(in srgb, var(--wb-card) 92%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pond-poster,
+  .pond-canvas {
+    transition: none;
+  }
+}
+
+/* V1: converter and the spring picture on the welcome screen */
+.converter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wb-space-2);
+  padding-top: var(--wb-space-2);
+}
+.converter-row {
+  display: flex;
+  gap: var(--wb-space-2);
+}
+.converter-row input {
+  width: 7em;
+}
+.converter-row input,
+.converter-row select {
+  min-height: 44px;
+}
+.converter-out {
+  margin: 0;
+  font-size: var(--wb-text-secondary);
+}
+.hero-ripple {
+  width: 100%;
+  max-height: 38dvh;
+  object-fit: cover;
+  object-position: 40% 55%;
+  border-radius: var(--wb-radius-l);
+}
+
+/* V1: Journal progress */
+.summary {
+  display: grid;
+  gap: var(--wb-space-2);
+  margin: 0;
+}
+.summary dt {
+  font-family: var(--wb-font-mono);
+  font-size: var(--wb-text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wb-ink-muted);
+}
+.summary dd {
+  margin: 2px 0 0;
+}
+.month-strip {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 6px;
+  margin: var(--wb-space-3) 0 var(--wb-space-2);
+  padding: 0;
+  list-style: none;
+}
+.month-strip li {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--wb-shallows);
+}
+.month-strip li[data-met] {
+  background: var(--wb-deep);
+  border-color: var(--wb-deep);
+}
+.month-strip li[data-some] {
+  background: linear-gradient(0deg, var(--wb-shallows) 50%, transparent 50%);
+}
+
+/* V1 layout: the quick-adds stay above the fold on phones; the spring's quest stays small. */
+@media (max-width: 520px) {
+  .today .stage {
+    height: clamp(300px, 44dvh, 460px);
+  }
+  .quest {
+    max-width: none;
+    padding: 6px 10px;
+  }
+  .quest .label,
+  .quest-long {
+    display: none;
+  }
+  .quest-line {
+    display: inline;
+    margin: 0 6px 0 0;
+  }
+  .quest-marks {
+    display: inline-flex;
+    vertical-align: middle;
+  }
+  .quest-marks li {
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+  }
+  .spring-top {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+}
+@media (min-width: 521px) {
+  .quest-short {
+    display: none;
+  }
+}

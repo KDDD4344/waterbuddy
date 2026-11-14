@@ -65,7 +65,7 @@ export function Postcard({ card, record, back }: { card: Card; record?: Postcard
             </p>
           )}
           <p className="postcard-message hand">{card.message}</p>
-          <p className="postcard-sign hand">— Pip</p>
+          <p className="postcard-sign hand">— Ripple</p>
           <div className="postcard-find">
             <p className="label">Field find</p>
             <p>
@@ -115,7 +115,7 @@ export function PostcardAlbum() {
   return (
     <>
       <p className="small muted">
-        {got.size} of {ROUTE_1.length} · a card washes up the morning after each day the bottle fills.
+        {got.size} of {ROUTE_1.length} · Ripple sends a card the morning after each day you reach your goal.
       </p>
       <ul className="album">
         {ROUTE_1.map((c) =>

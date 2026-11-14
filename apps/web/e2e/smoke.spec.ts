@@ -11,10 +11,11 @@ async function onboard(page: Page) {
 }
 
 const stat = (page: Page) => page.getByLabel("Today's progress");
+const API = 'http://localhost:8765';
 
-test('first run starts with Pip saying hello', async ({ page }) => {
+test('first run starts with Ripple saying hello', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1, name: 'Hi, I’m Pip' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Hi, I’m Ripple' })).toBeVisible();
 });
 
 test('the app is installable: manifest with icons', async ({ page, request }) => {
@@ -45,7 +46,10 @@ test('logging takes under 2 seconds from tap to updated total', async ({ page })
   expect(Date.now() - start).toBeLessThan(2000);
 });
 
-test('Pip’s 3D tidepool loads after the numbers, and a pour plays without blocking logging', async ({ page }, info) => {
+test('Ripple’s spring loads after the numbers, and a pour plays without blocking logging', async ({ page }, info) => {
+  test.setTimeout(120_000);
+  // CI's Chromium draws WebGL on the CPU; ask for the live spring anyway (the app's "Show it anyway").
+  await page.addInitScript(() => localStorage.setItem('wb-3d-anyway', '1'));
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
@@ -57,7 +61,7 @@ test('Pip’s 3D tidepool loads after the numbers, and a pour plays without bloc
   await onboard(page);
   // The numbers are usable before the 3D scene exists.
   await expect(stat(page)).toContainText('0 millilitres of 2 litres');
-  await expect(page.locator('.stage-3d.ready')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('.pond[data-live]')).toBeVisible({ timeout: 60_000 });
   await page.waitForTimeout(800);
   await page.screenshot({ path: info.outputPath('today-3d-idle.png') });
 
@@ -126,13 +130,19 @@ test('"Not today" costs nothing', async ({ page }) => {
   await expect(page.getByText('0 of 14 pressed in')).toBeVisible();
 });
 
-test('night voyage: the goal corks the bottle, night falls, and a postcard washes up next morning', async ({ page }, info) => {
+test('night voyage: the goal is reached, night falls, and a postcard washes up next morning', async ({
+  page
+}, info) => {
   test.setTimeout(90_000);
   await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
   await onboard(page);
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
-  await expect(stat(page)).toContainText('Bottle full and corked');
-  await page.waitForTimeout(4500); // pour, cheer, then the cork
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: /Log 500 ml/ }).click();
+    // Taps at a person's pace: a repeat within 0.6 s counts as an accidental double tap.
+    await page.waitForTimeout(700);
+  }
+  await expect(stat(page)).toContainText('Goal reached');
+  await page.waitForTimeout(4500); // pour, then Ripple's celebration
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(300);
   await page.screenshot({ path: info.outputPath('voyage-corked.png') });
@@ -159,95 +169,95 @@ test('night voyage: the goal corks the bottle, night falls, and a postcard washe
   await sheet.getByRole('button', { name: 'Done' }).click();
 
   await page.getByRole('button', { name: 'Journal' }).click();
-  await expect(page.getByText(/1 of 6 · a card washes up/)).toBeVisible();
+  await expect(page.getByText(/1 of 6 · Ripple sends a card/)).toBeVisible();
   await page.getByText('Postcards · Route I').scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
   await page.screenshot({ path: info.outputPath('album.png') });
 });
 
-test('after last call there is no countdown, only "We’ll sail tomorrow"', async ({ page }) => {
+test('after last call there is no countdown, only "More tomorrow"', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-11-10T21:15:00'));
   await onboard(page);
-  await expect(stat(page)).toContainText('We’ll sail tomorrow');
-  await expect(stat(page)).not.toContainText('glasses to go');
+  await expect(stat(page)).toContainText('More tomorrow');
+  await expect(stat(page)).not.toContainText('to go');
 });
 
-test('the Waterverse: Pip sails to new islands, the fog lifts, and every place is reachable from the list', async ({ page }, info) => {
-  test.setTimeout(120_000);
+test('Atlas: Ripple’s spring responds to touch, the quest fills in, and exploring never logs water', async ({ page }, info) => {
+  test.setTimeout(240_000);
+  const hasWebGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl'));
+  test.skip(!hasWebGL, 'No WebGL in this browser build.');
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
+  // ?dev exposes the scene so the test can find where things are on screen.
+  await page.goto('/?dev');
+  await page.getByRole('button', { name: 'Let’s set up' }).click();
+  await page.getByRole('radio', { name: /18 to 64/ }).check();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Start filling' }).click();
+  await expect(stat(page)).toBeVisible();
+  // CI's Chromium draws WebGL on the CPU: ask for the live spring (the app's "Show it anyway"),
+  // only now, so Today keeps its still picture and the test stays quick.
+  await page.evaluate(() => localStorage.setItem('wb-3d-anyway', '1'));
+  await page.getByRole('button', { name: 'Atlas' }).click();
+  await expect(page.getByRole('heading', { name: 'The spring' })).toBeVisible();
+  await expect(page.locator('.pond[data-live]')).toBeVisible({ timeout: 150_000 });
+  await page.getByRole('button', { name: 'Got it' }).click();
+  await page.waitForTimeout(1500);
+  // For each thing, the first point along it that is on the canvas and picks that thing. Worked
+  // out just before each tap: the camera drifts a little while nobody touches it.
+  const spotsNow = () => page.evaluate(() => {
+    type V3 = { clone(): V3; add(v: V3): V3; addScaledVector(v: V3, k: number): V3; project(c: unknown): V3; x: number; y: number };
+    const s = (window as unknown as { __pond: unknown }).__pond as {
+      camera: { position: { constructor: new (x: number, y: number, z: number) => V3 } };
+      seatTop: V3;
+      level: number;
+      world: { spout: { mouth: V3; dir: V3 } };
+      life: { lilies: { group: { position: V3 } }[] };
+      canvas: HTMLCanvasElement;
+      pick(n: V3): { what: string } | null;
+    };
+    const V = s.camera.position.constructor;
+    const r = s.canvas.getBoundingClientRect();
+    const first = (what: string, pts: V3[]) => {
+      for (const p of pts) {
+        const q = p.clone().project(s.camera);
+        const x = r.left + ((q.x + 1) / 2) * r.width;
+        const y = r.top + ((1 - q.y) / 2) * r.height;
+        const hit = what === 'water' ? null : s.pick(q)?.what;
+        if (document.elementFromPoint(x, y) === s.canvas && (what === 'water' || hit === what)) return { x, y };
+      }
+      return null;
+    };
+    const m = s.world.spout.mouth;
+    const d = s.world.spout.dir;
+    return {
+      ripple: first('ripple', [0.75, 0.5, 1].map((h) => s.seatTop.clone().add(new V(0, h, 0)))),
+      pad: first('pad', s.life.lilies.map((l) => l.group.position)),
+      spout: first('spout', [0, -0.1, -0.25, -0.5, -0.8].map((k) => m.clone().addScaledVector(d, k))),
+      water: first('water', [new V(0.9, s.level, 1.0), new V(-0.6, s.level, 0.9), new V(0.3, s.level, 1.4)])
+    };
   });
-  const hasWebGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl'));
-
-  // Two goal days, then the next morning.
-  await page.clock.setFixedTime(new Date('2026-11-10T10:00:00'));
-  await onboard(page);
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
-  await expect(stat(page)).toContainText('Bottle full and corked');
-  await page.clock.setFixedTime(new Date('2026-11-11T10:00:00'));
-  await page.reload();
-  await expect(page.getByRole('button', { name: /message washed up/ })).toBeVisible();
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
-  await expect(stat(page)).toContainText('Bottle full and corked');
-  await page.clock.setFixedTime(new Date('2026-11-12T08:00:00'));
-  await page.reload();
-  await expect(page.getByRole('button', { name: /2 messages washed up/ })).toBeVisible();
-
-  await page.getByRole('button', { name: 'Atlas' }).click();
-  await expect(page.getByRole('heading', { name: 'The Waterverse' })).toBeVisible();
-  await expect(page.getByText('2 of 6 out of the fog')).toBeVisible();
-
-  if (hasWebGL) {
-    await expect(page.locator('.atlas-3d.ready')).toBeVisible({ timeout: 20_000 });
-    await page.waitForTimeout(2500);
-    await page.screenshot({ path: info.outputPath('waterverse-sailing.png') });
-    // two legs and two fog lifts
-    await page.waitForTimeout(16_000);
-    await page.screenshot({ path: info.outputPath('waterverse-after.png') });
-
-    // drag pans the map
-    const label = page.locator('.atlas-label').first();
-    const before = await label.evaluate((el) => (el as HTMLElement).style.transform);
-    const box = (await page.locator('.waterverse-canvas canvas').boundingBox())!;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.6);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 - 80, box.y + box.height * 0.6 + 40, { steps: 8 });
-    await page.mouse.up();
-    await page.waitForTimeout(600);
-    expect(await label.evaluate((el) => (el as HTMLElement).style.transform)).not.toBe(before);
+  for (const k of ['ripple', 'pad', 'spout', 'water'] as const) {
+    const p = (await spotsNow())[k];
+    expect(p, `${k} is on screen`).not.toBeNull();
+    await page.mouse.click(p!.x, p!.y);
+    await page.waitForTimeout(800);
   }
-
-  // The list reaches every place, with or without 3D.
-  const places = page.getByRole('list').filter({ has: page.locator('.place') }).getByRole('button');
-  await expect(places).toHaveCount(6);
-  await places.nth(1).click();
-  await expect(page.locator('.island-card')).toContainText('Umngot River');
-  await page.waitForTimeout(2000);
-  await page.screenshot({ path: info.outputPath('waterverse-island.png') });
-  await page.getByRole('button', { name: 'Read the postcard' }).click();
-  await expect(page.getByRole('dialog').getByRole('heading', { name: 'Postcard 2 of 6' })).toBeVisible();
-  await page.getByRole('dialog').getByRole('button', { name: 'Done' }).click();
-  await places.nth(4).click();
-  await expect(page.locator('.island-card')).toContainText('Still in the fog');
-
-  // Coming back later does not replay the voyage.
-  await page.reload();
-  await page.getByRole('button', { name: 'Atlas' }).click();
-  expect(await page.evaluate(async () => {
-    const req = indexedDB.open('waterbuddy');
-    const db: IDBDatabase = await new Promise((r) => (req.onsuccess = () => r(req.result)));
-    const p = await new Promise<{ atlasSeen?: number }>((r) => {
-      const g = db.transaction('profile').objectStore('profile').get('me');
-      g.onsuccess = () => r(g.result);
-    });
-    return p.atlasSeen ?? 0;
-  })).toBe(hasWebGL ? 2 : 2);
+  await expect(page.locator('.quest')).toContainText('4 of 4', { timeout: 15_000 });
+  await expect(page.getByText(/Today’s quest is complete/)).toBeVisible();
+  await page.screenshot({ path: info.outputPath('atlas-spring.png') });
+  // Exploring logged nothing.
+  await expect(page.locator('.spring-total')).toContainText('0 ml');
+  // Pouring here logs exactly one glass, like Today.
+  await page.getByRole('button', { name: 'Pour 250 ml' }).click();
+  await expect(page.locator('.spring-total')).toContainText('250 ml');
+  await page.getByRole('button', { name: 'Journal' }).click();
+  await expect(page.getByText(/Today’s quest: 4 of 4/)).toBeVisible();
+  await expect(page.getByText(/Quests completed this week: 1/)).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-const API = 'http://localhost:8765';
 
 async function reminderId(page: Page): Promise<string | undefined> {
   return page.evaluate(async () => {
@@ -260,7 +270,12 @@ async function reminderId(page: Page): Promise<string | undefined> {
   });
 }
 
-test('reminders: turn on, the server learns only time, zone, bedtime and goal-met, and goes quiet at the goal', async ({ page, context, request, browserName }) => {
+test('reminders: turn on, the server learns only time, zone, bedtime and goal-met, and goes quiet at the goal', async ({
+  page,
+  context,
+  request,
+  browserName
+}) => {
   test.skip(browserName !== 'chromium', 'iPhone needs the Home Screen app for push; covered by the next test.');
   test.setTimeout(60_000);
   await context.grantPermissions(['notifications'], { origin: 'http://localhost:4173' });
@@ -269,7 +284,13 @@ test('reminders: turn on, the server learns only time, zone, bedtime and goal-me
     const fake = {
       endpoint: 'https://push.example.test/e2e',
       toJSON() {
-        return { endpoint: this.endpoint, keys: { p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', auth: 'tBHItJI5svbpez7KI4CCXg' } };
+        return {
+          endpoint: this.endpoint,
+          keys: {
+            p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM',
+            auth: 'tBHItJI5svbpez7KI4CCXg'
+          }
+        };
       },
       unsubscribe: async () => true
     };
@@ -304,9 +325,15 @@ test('reminders: turn on, the server learns only time, zone, bedtime and goal-me
 
   // Fill the bottle: the server hears only "goal met today".
   await page.getByRole('button', { name: 'Today', exact: true }).click();
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
-  await expect(stat(page)).toContainText('Bottle full and corked');
-  await expect.poll(async () => (await (await request.get(`${API}/reminders/${id}`)).json()).goal_met_day).toBe('2026-11-10');
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: /Log 500 ml/ }).click();
+    // Taps at a person's pace: a repeat within 0.6 s counts as an accidental double tap.
+    await page.waitForTimeout(700);
+  }
+  await expect(stat(page)).toContainText('Goal reached');
+  await expect
+    .poll(async () => (await (await request.get(`${API}/reminders/${id}`)).json()).goal_met_day)
+    .toBe('2026-11-10');
 
   // Nothing sent to the server mentions an amount.
   expect(JSON.stringify(sent)).not.toMatch(/ml|2000|500|total/i);
@@ -344,7 +371,11 @@ test('a reminder push is shown only before the goal, in gentle words', async ({ 
         g.__shown!.push(opts?.body ?? '');
       };
       const PushEventCtor = (g as unknown as { PushEvent: new (t: string, i: object) => Event }).PushEvent;
-      g.dispatchEvent(new PushEventCtor('push', { data: JSON.stringify({ t: 'reminder', id: 'device-e2e-abcdefghijkl', day: '2026-11-10' }) }));
+      g.dispatchEvent(
+        new PushEventCtor('push', {
+          data: JSON.stringify({ t: 'reminder', id: 'device-e2e-abcdefghijkl', day: '2026-11-10' })
+        })
+      );
       await new Promise((r) => setTimeout(r, 800));
       g.Date = RealDate;
       return g.__shown;
@@ -357,8 +388,12 @@ test('a reminder push is shown only before the goal, in gentle words', async ({ 
   // After last call (20:30 with the default bedtime) nothing is shown.
   expect(await pushAt('2026-11-10T21:00:00')).toEqual([]);
 
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /Log 500 ml/ }).click();
-  await expect(stat(page)).toContainText('Bottle full and corked');
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: /Log 500 ml/ }).click();
+    // Taps at a person's pace: a repeat within 0.6 s counts as an accidental double tap.
+    await page.waitForTimeout(700);
+  }
+  await expect(stat(page)).toContainText('Goal reached');
   expect(await pushAt('2026-11-10T12:00:00')).toEqual([]);
 });
 
@@ -371,7 +406,10 @@ test('on iPhone, reminders explain the Home Screen step first', async ({ page, b
   await expect(page.getByText('Add to Home Screen', { exact: true })).toBeVisible();
 });
 
-test('offline, the 3D Waterverse still loads from the cache', async ({ page, context }) => {
+test('offline, Ripple’s spring still loads from the cache', async ({ page, context }) => {
+  test.setTimeout(150_000);
+  // CI's Chromium draws WebGL on the CPU; ask for the live spring anyway (the app's "Show it anyway").
+  await page.addInitScript(() => localStorage.setItem('wb-3d-anyway', '1'));
   const hasWebGL = await page.evaluate(() => !!document.createElement('canvas').getContext('webgl'));
   test.skip(!hasWebGL, 'No WebGL in this browser build.');
   await onboard(page);
@@ -381,6 +419,6 @@ test('offline, the 3D Waterverse still loads from the cache', async ({ page, con
   await context.setOffline(true);
   await page.reload();
   await page.getByRole('button', { name: 'Atlas' }).click();
-  await expect(page.locator('.atlas-3d.ready')).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('.pond[data-live]')).toBeVisible({ timeout: 90_000 });
   await context.setOffline(false);
 });

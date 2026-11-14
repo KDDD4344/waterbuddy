@@ -13,6 +13,8 @@ import { useOfflineReady } from '../lib/offline';
 import { isInstalled, isIos } from '../lib/pwa';
 import { disableReminders } from '../lib/push';
 import { InstallSettings, RemindersSettings } from './RemindersSettings';
+import { DaySettings } from './DaySettings';
+import { Converter } from '../components/Converter';
 import { PrivacySheet } from './Privacy';
 import { useParentGate } from '../ui/useParentGate';
 import { feedbackAllowed, textSizeOf, type TextSize } from '../domain/modes';
@@ -121,6 +123,7 @@ export function You({ profile }: { profile: Profile }) {
             Edit
           </button>
         </div>
+        <Converter cupMl={profile.cupMl} />
       </section>
 
       <section className="group" aria-labelledby="g-display">
@@ -151,11 +154,11 @@ export function You({ profile }: { profile: Profile }) {
       </section>
 
       <section className="group" aria-labelledby="g-pip">
-        <h2 id="g-pip">Pip and the tidepool</h2>
+        <h2 id="g-pip">Ripple and the spring</h2>
         <label className="setting">
           <span>
             <span className="setting-label">3D scenes</span>
-            <span className="small muted block">The tidepool and the Waterverse. Turn off to save battery; everything still works.</span>
+            <span className="small muted block">Ripple&rsquo;s spring on Today and in Atlas. Turn off to save battery; logging and everything else still work.</span>
           </span>
           <input
             type="checkbox"
@@ -167,14 +170,14 @@ export function You({ profile }: { profile: Profile }) {
         <label className="setting">
           <span>
             <span className="setting-label">Sounds</span>
-            <span className="small muted block">A pour that rises in pitch as the bottle fills.</span>
+            <span className="small muted block">A brook in the background, the pour and splash, a chime per glass and soft plinks when you touch the spring. Off by default.</span>
           </span>
           <input type="checkbox" className="switch" checked={profile.sound === true} onChange={(e) => updateProfile({ sound: e.target.checked })} />
         </label>
         <label className="setting">
           <span>
             <span className="setting-label">Motion</span>
-            <span className="small muted block">Less motion keeps Pip&rsquo;s reactions but drops the pour, splashes and camera drift.</span>
+            <span className="small muted block">Less motion keeps Ripple&rsquo;s reactions but drops the jumps, camera moves and spray.</span>
           </span>
           <select
             value={profile.reduceMotion === undefined ? 'system' : profile.reduceMotion ? 'less' : 'full'}
@@ -187,6 +190,7 @@ export function You({ profile }: { profile: Profile }) {
         </label>
       </section>
 
+      <DaySettings profile={profile} />
       <RemindersSettings profile={profile} />
       <InstallSettings />
 

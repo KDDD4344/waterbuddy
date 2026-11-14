@@ -33,10 +33,10 @@ export function History({ profile, embedded = false }: { profile: Profile; embed
   const met = lastWeek.filter((r) => r.p.reached).length;
   const lead =
     rows.length <= 1
-      ? 'Your days will collect here, one bottle at a time.'
+      ? 'Your days will collect here, one at a time.'
       : met === 0
-        ? 'Every day is a fresh bottle.'
-        : `Bottle full on ${met} of the last ${lastWeek.length} days.`;
+        ? 'Every day is a fresh start.'
+        : `Goal met on ${met} of the last ${lastWeek.length} days.`;
 
   return (
     <Wrap embedded={embedded}>

@@ -51,6 +51,10 @@ export function GoalPicker({ bandId, valueMl, onChange, confirmed, onConfirmedCh
 
       <div className="why">
         <p className="label">Suggested for ages {b.label}: {formatAmount(b.suggestedMl, 'ml')}</p>
+        <p>
+          <strong>A starting point, not a prescription.</strong> Needs vary with heat, activity and health. Set your own number, or the one a
+          doctor gave you.
+        </p>
         <p>{b.why}</p>
         <p className="small">
           Source:{' '}

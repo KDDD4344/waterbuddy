@@ -4,8 +4,9 @@ import { dayKey, deviceTimeZone, type DayKey } from '../domain/dates';
 import { MAX_SINGLE_LOG_ML } from '../domain/guards';
 import type { TaskAnswer } from '../domain/tasks';
 
+// The first three are Today's quick-adds out of the box (+150, +250, +500); all are editable.
 export const DEFAULT_VESSELS: Omit<Vessel, 'order'>[] = [
-  { id: 'glass', name: 'Glass', ml: 200 },
+  { id: 'small-glass', name: 'Small glass', ml: 150 },
   { id: 'tumbler', name: 'Steel tumbler', ml: 250 },
   { id: 'bottle-500', name: 'Bottle', ml: 500 },
   { id: 'bottle-1000', name: 'Steel bottle', ml: 1000 }
@@ -220,8 +221,27 @@ export async function exportAll(now = new Date()): Promise<ExportFile> {
 }
 
 /** Permanently removes everything stored on this device. */
+/** The spring's four things to find (the daily quest). */
+export const DISCOVERABLE = ['ripple', 'water', 'pad', 'spout'] as const;
+
+/**
+ * Records that something in the spring was found today. Returns true the moment the
+ * fourth is found (the quest is complete). Never touches drink logs.
+ */
+export async function addDiscovery(day: DayKey, what: string, now = new Date()): Promise<boolean> {
+  if (!(DISCOVERABLE as readonly string[]).includes(what)) return false;
+  return db.transaction('rw', db.discoveries, async () => {
+    const cur = (await db.discoveries.get(day)) ?? { day, found: [], completedAt: null };
+    if (cur.found.includes(what)) return false;
+    const found = [...cur.found, what];
+    const done = found.length === DISCOVERABLE.length;
+    await db.discoveries.put({ day, found, completedAt: done ? now.toISOString() : cur.completedAt });
+    return done;
+  });
+}
+
 export async function deleteEverything(): Promise<void> {
-  await db.transaction('rw', [db.profile, db.vessels, db.logs, db.goals, db.tasks, db.notes, db.postcards], async () => {
-    await Promise.all([db.profile.clear(), db.vessels.clear(), db.logs.clear(), db.goals.clear(), db.tasks.clear(), db.notes.clear(), db.postcards.clear()]);
+  await db.transaction('rw', [db.profile, db.vessels, db.logs, db.goals, db.tasks, db.notes, db.postcards, db.discoveries], async () => {
+    await Promise.all([db.profile.clear(), db.vessels.clear(), db.logs.clear(), db.goals.clear(), db.tasks.clear(), db.notes.clear(), db.postcards.clear(), db.discoveries.clear()]);
   });
 }

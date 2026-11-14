@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type DrinkLog, type Profile, type Vessel } from '../data/db';
-import { addLog, logsForDay, removeLog, restoreLog, updateLog } from '../data/repo';
+import { db, type DrinkLog, type Profile } from '../data/db';
+import { logsForDay, removeLog, restoreLog, updateLog } from '../data/repo';
 import { dayLabel, timeLabel } from '../domain/dates';
-import { crossedMilestone, progress, STANDARD_GLASS_ML } from '../domain/progress';
+import { progress, STANDARD_GLASS_ML } from '../domain/progress';
 import { shouldShowSipGuard } from '../domain/guards';
 import { formatAmount, formatBig, spokenAmount } from '../domain/units';
 import { useToday } from '../hooks/useToday';
+import { useLogDrink } from '../hooks/useLogDrink';
 import { useToast } from '../ui/toast';
-import { tidepoolBus } from '../three/bus';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { Stage } from './Stage';
+import { Pond } from '../components/Pond';
+import { tipFor } from '../domain/tips';
 import { CustomAmountSheet, EditLogSheet } from './LogSheets';
 import { FieldTaskEntry } from './FieldTask';
 import { MessageBottle, PostcardSheet } from './Postcard';
 import { useNow } from '../hooks/useNow';
-import { clockLabel, isAfterLastCall, lastCallTime, scenePhase, type Phase } from '../domain/voyage';
+import { clockLabel, isAfterLastCall, lastCallTime, scenePhase } from '../domain/voyage';
 
-const NIGHT: Record<Phase, number> = { day: 0, evening: 0.3, night: 1, morning: 0 };
 
-const STAMP_WORDS: Record<number, string> = { 25: 'Underway', 50: 'Halfway', 75: 'Nearly there', 100: 'Bottle full' };
+const STAMP_WORDS: Record<number, string> = { 25: 'Underway', 50: 'Halfway', 75: 'Nearly there', 100: 'Goal reached' };
 
 export function Today({ profile }: { profile: Profile }) {
   const today = useToday();
@@ -43,62 +43,24 @@ export function Today({ profile }: { profile: Profile }) {
   const fmt = (ml: number) => formatAmount(ml, profile.units, profile.cupMl);
   const showGuard = shouldShowSipGuard(list, new Date()) && Date.now() - guardDismissedAt > 60 * 60 * 1000;
 
-  const log = async (ml: number, vessel?: Vessel) => {
-    const before = total;
-    const after = before + ml;
-    const milestone = before < profile.goalMl ? crossedMilestone(before, after, profile.goalMl) : null;
-    // Start the pour animation straight away; storage catches up a few milliseconds later.
-    tidepoolBus.emit({
-      type: 'pour',
-      event: {
-        ml,
-        fromFill: Math.min(1, before / profile.goalMl),
-        toFill: Math.min(1, after / profile.goalMl),
-        milestone,
-        overGoal: before >= profile.goalMl
-      }
-    });
-    const entry = await addLog(ml, vessel?.id ?? null);
-    if (milestone) setStamp({ pct: milestone, key: Date.now() });
-    const status =
-      before >= profile.goalMl
-        ? `${fmt(ml)} logged. Today's goal was already met.`
-        : after >= profile.goalMl
-          ? `${fmt(ml)} logged. Goal reached for today.`
-          : `${fmt(ml)} logged. ${fmt(after)} of ${fmt(profile.goalMl)}.`;
-    toast({
-      text: status,
-      action: {
-        label: 'Undo',
-        run: () => {
-          tidepoolBus.emit({ type: 'undo', toFill: Math.min(1, before / profile.goalMl) });
-          void removeLog(entry.id);
-        }
-      }
-    });
-  };
+  const log = useLogDrink(profile, (pct) => setStamp({ pct, key: Date.now() }));
 
   const lastCalled = isAfterLastCall(now, profile.bedtime);
   const phase = scenePhase(now, { goalMet: p.reached, messageWaiting: (waiting?.length ?? 0) > 0, bedtime: profile.bedtime });
   // After last call Pip stops counting down, so the app never nudges anyone to drink late (safety rule 3).
+  const remaining = Math.max(0, profile.goalMl - total);
   const subline = p.reached
-    ? 'Bottle full and corked. Pip sets sail tonight.'
+    ? `Goal reached · ${p.percent}% · Ripple sets off tonight and will send a postcard.`
     : lastCalled
-      ? `of ${fmt(profile.goalMl)} · last call was ${clockLabel(lastCallTime(profile.bedtime))}. We’ll sail tomorrow.`
-      : `of ${fmt(profile.goalMl)} · about ${p.glassesToGo} ${p.glassesToGo === 1 ? 'glass' : 'glasses'} to go`;
+      ? `of ${fmt(profile.goalMl)} · ${p.percent}% · last call was ${clockLabel(lastCallTime(profile.bedtime))}. More tomorrow.`
+      : `of ${fmt(profile.goalMl)} · ${p.percent}% · ${fmt(remaining)} to go`;
 
   return (
     <main className="screen today">
       <div className="stage" data-phase={phase}>
-        <Stage
-          fill={p.fill}
-          corked={p.reached}
-          night={NIGHT[phase]}
-          label={`Pip's bottle is ${p.percent} percent full.${p.reached ? ' It is full for today.' : ''}`}
-          want3d={profile.scene3d !== false}
-          reducedMotion={reducedMotion}
-          soundOn={profile.sound === true}
-        />
+        <Pond variant="today" want3d={profile.scene3d !== false} progress={p.fill} explore={false} reduced={reducedMotion} sound={profile.sound === true}>
+          <p className="sr-only">{`Ripple's spring is ${p.percent} percent full.${p.reached ? ' It is full for today.' : ''}`}</p>
+        </Pond>
         <div className="stage-top">
           <p className="kicker">{dayLabel(today, today)} · fluids logged</p>
           <section className="stat" aria-label="Today's progress">
@@ -126,7 +88,25 @@ export function Today({ profile }: { profile: Profile }) {
         <div className="meter-fill" style={{ width: `${p.percent}%` }} />
       </div>
 
+      <section aria-label="Log a drink" className="log-grid">
+        {(vessels ?? []).map((v) => (
+          <button key={v.id} type="button" className="log-btn" onClick={(e) => log(v.ml, v, e.detail)} aria-label={`Log ${fmt(v.ml)}, ${v.name}`}>
+            <span className="log-amount">+ {fmt(v.ml)}</span>{' '}
+            <span className="log-name">{v.name}</span>
+          </button>
+        ))}
+        <button type="button" className="log-btn other" onClick={() => setCustomOpen(true)}>
+          <span className="log-amount">Other</span>
+          <span className="log-name">Custom amount</span>
+        </button>
+      </section>
+
       <FieldTaskEntry variant="chip" />
+
+      <aside className="tip" aria-label="Tip of the day">
+        <p className="label">Field note</p>
+        <p>{tipFor(today)}</p>
+      </aside>
 
       {showGuard && (
         <div className="note calm" role="status">
@@ -138,18 +118,6 @@ export function Today({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      <section aria-label="Log a drink" className="log-grid">
-        {(vessels ?? []).map((v) => (
-          <button key={v.id} type="button" className="log-btn" onClick={() => log(v.ml, v)} aria-label={`Log ${fmt(v.ml)}, ${v.name}`}>
-            <span className="log-amount">+ {fmt(v.ml)}</span>{' '}
-            <span className="log-name">{v.name}</span>
-          </button>
-        ))}
-        <button type="button" className="log-btn other" onClick={() => setCustomOpen(true)}>
-          <span className="log-amount">Other</span>
-          <span className="log-name">Custom amount</span>
-        </button>
-      </section>
 
       <section className="entries" aria-labelledby="entries-title">
         <h2 id="entries-title">Today&rsquo;s drinks</h2>

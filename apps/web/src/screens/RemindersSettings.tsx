@@ -21,7 +21,7 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
   const [paused, setPaused] = useState(false);
   const [stopped, setStopped] = useState(false);
   const timeId = useId();
-  const problem = reminderTimeProblem(time, bedtime);
+  const problem = reminderTimeProblem(time, bedtime, profile.wake);
 
   useEffect(() => {
     if (!r?.on || support !== 'supported') return;
@@ -64,7 +64,7 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
     <section className="group" aria-labelledby="g-remind">
       <h2 id="g-remind">Reminders</h2>
       <p className="small muted">
-        One gentle reminder a day, at most. It never comes once your bottle is full, or after last call ({clockLabel(lastCallTime(bedtime))}).
+        One gentle reminder a day, at most. It never comes once your goal is reached, or after last call ({clockLabel(lastCallTime(bedtime))}).
       </p>
 
       {!remindersAllowed(profile.ageBand) ? (

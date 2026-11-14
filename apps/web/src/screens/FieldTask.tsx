@@ -175,7 +175,7 @@ function FieldTaskSheet({ task, number, onClose }: { task: Task; number: number;
                 I usually go to sleep at
               </label>
               <input id={timeId} className="big-input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-              <p className="small muted">Pip&rsquo;s last call will be two hours before.</p>
+              <p className="small muted">Last call will be two hours before.</p>
             </div>
           )}
 
