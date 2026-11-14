@@ -20,7 +20,8 @@ void self.skipWaiting();
 clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
-registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html')));
+// The Hero Lab (/lab/) is its own page; don't answer its navigations with the app shell.
+registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: [/^\/lab(\/|$)/] }));
 
 const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 

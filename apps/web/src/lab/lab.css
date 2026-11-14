@@ -1,0 +1,913 @@
+/* Hero Lab. Uses the app's tokens (styles/tokens.css): paper cards over the scene, deep-water actions. */
+
+.lab {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #49634a;
+  color: var(--wb-ink);
+}
+
+.lab-stage {
+  position: absolute;
+  inset: 0;
+}
+.lab-stage:focus-visible {
+  outline: 3px solid var(--wb-ochre);
+  outline-offset: -3px;
+}
+.lab-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+.lab-canvas:active {
+  cursor: grabbing;
+}
+
+.lab-fallback {
+  position: absolute;
+  inset: auto 16px 50% 16px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: var(--wb-space-5);
+  background: var(--wb-card);
+  border-radius: var(--wb-radius-m);
+}
+
+.lab-kicker {
+  margin: 0 0 4px;
+  font-family: var(--wb-font-body);
+  font-weight: 700;
+  font-size: var(--wb-text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wb-rust);
+}
+
+/* Panels share one look: paper, a soft shadow, no gradients. */
+.lab-brand,
+.lab-progress,
+.lab-iconbtn,
+.lab-pop,
+.lab-card,
+.lab-reacts button,
+.lab-hint,
+.lab-guard {
+  background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 8px 24px rgba(10, 37, 48, 0.18);
+}
+
+.lab-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--wb-space-3);
+  padding: max(var(--wb-space-4), env(safe-area-inset-top)) var(--wb-space-4) 0;
+  pointer-events: none;
+}
+.lab-top > * {
+  pointer-events: auto;
+}
+
+.lab-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-2);
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+}
+.lab-word {
+  white-space: nowrap;
+  font-family: var(--wb-font-display);
+  font-size: calc(17px * var(--wb-scale));
+  color: var(--wb-deep);
+}
+.lab-tag {
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--wb-deep);
+  color: var(--wb-foam);
+  font-size: var(--wb-text-label);
+  font-weight: 700;
+}
+
+.lab-progress {
+  margin-left: auto;
+  min-width: 200px;
+  padding: 10px 16px 12px;
+  border-radius: var(--wb-radius-m);
+}
+.lab-ml {
+  margin: 0;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+.lab-num {
+  font-family: var(--wb-font-display);
+  font-size: calc(30px * var(--wb-scale));
+  color: var(--wb-deep);
+  font-variant-numeric: tabular-nums;
+}
+.lab-of {
+  font-size: var(--wb-text-secondary);
+  color: var(--wb-ink-muted);
+}
+.lab-bar {
+  height: 6px;
+  margin: 8px 0 6px;
+  border-radius: 3px;
+  background: var(--wb-rule);
+  overflow: hidden;
+}
+.lab-bar span {
+  display: block;
+  height: 100%;
+  background: var(--wb-deep);
+  transform-origin: left center;
+}
+.lab-sub {
+  margin: 0;
+  font-size: var(--wb-text-label);
+  color: var(--wb-ink-muted);
+}
+
+.lab-menu {
+  position: relative;
+}
+.lab-iconbtn {
+  display: grid;
+  place-items: center;
+  width: var(--wb-touch-min);
+  height: var(--wb-touch-min);
+  border: 0;
+  border-radius: 50%;
+  color: var(--wb-deep);
+}
+.lab-iconbtn svg {
+  width: 22px;
+  height: 22px;
+}
+.lab-pop {
+  position: absolute;
+  right: 0;
+  top: calc(var(--wb-touch-min) + 8px);
+  z-index: 5;
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+  padding: var(--wb-space-2);
+  border-radius: var(--wb-radius-m);
+}
+.lab-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-3);
+  min-height: var(--wb-touch-min);
+  padding: 0 var(--wb-space-2);
+  border-radius: var(--wb-radius-s);
+  cursor: pointer;
+}
+.lab-switch input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--wb-deep);
+}
+.lab-text-btn {
+  min-height: var(--wb-touch-min);
+  padding: 0 var(--wb-space-3);
+  border: 0;
+  border-radius: var(--wb-radius-s);
+  background: transparent;
+  color: var(--wb-deep);
+  font-weight: 700;
+  text-align: left;
+}
+.lab-switch:hover,
+.lab-text-btn:hover {
+  background: color-mix(in srgb, var(--wb-mist) 35%, transparent);
+}
+
+.lab-hint {
+  position: absolute;
+  left: 50%;
+  top: calc(max(var(--wb-space-4), env(safe-area-inset-top)) + 96px);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: var(--wb-text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: lab-fade 600ms 1.2s both var(--wb-ease-out);
+}
+@keyframes lab-fade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+}
+
+.lab-guard {
+  position: absolute;
+  left: 50%;
+  top: calc(max(var(--wb-space-4), env(safe-area-inset-top)) + 96px);
+  transform: translateX(-50%);
+  width: min(440px, calc(100% - 32px));
+  padding: var(--wb-space-4) var(--wb-space-4) var(--wb-space-2);
+  border-radius: var(--wb-radius-m);
+}
+.lab-guard p {
+  margin: 0 0 6px;
+  font-size: var(--wb-text-secondary);
+}
+
+/* Dock: Buddy's name on the left, actions on the right (desktop). */
+.lab-name {
+  padding: 10px 16px 12px;
+  border-radius: var(--wb-radius-m);
+  background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+  box-shadow: 0 8px 24px rgba(10, 37, 48, 0.18);
+  max-width: 280px;
+}
+.lab-name-title {
+  margin: 0;
+  font-family: var(--wb-font-display);
+  font-size: calc(22px * var(--wb-scale));
+  color: var(--wb-deep);
+}
+.lab-name-note {
+  margin: 2px 0 0;
+  font-size: var(--wb-text-label);
+  color: var(--wb-ink-muted);
+}
+.lab-pop-note {
+  margin: 4px var(--wb-space-2) var(--wb-space-2);
+  max-width: 240px;
+  font-size: var(--wb-text-label);
+  color: var(--wb-ink-muted);
+}
+
+.lab-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--wb-space-4);
+  padding: 0 var(--wb-space-5) max(var(--wb-space-5), env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.lab-dock > * {
+  pointer-events: auto;
+}
+
+.lab-pick {
+  display: grid;
+  gap: var(--wb-space-2);
+  width: 320px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.lab-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: var(--wb-space-3);
+  padding: 10px 14px 10px 10px;
+  border: 2px solid transparent;
+  border-radius: var(--wb-radius-m);
+  cursor: pointer;
+  transition:
+    border-color var(--wb-dur-fast),
+    transform var(--wb-dur-fast) var(--wb-ease-out);
+}
+.lab-card:hover {
+  transform: translateY(-1px);
+}
+.lab-card[data-on] {
+  border-color: var(--wb-deep);
+  background: var(--wb-card);
+}
+.lab-card input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.lab-card:focus-within {
+  outline: 3px solid var(--wb-ochre);
+  outline-offset: 2px;
+}
+.lab-card svg {
+  width: 44px;
+  height: 44px;
+}
+.lab-card-text {
+  display: grid;
+  gap: 1px;
+}
+.lab-card-name {
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-2);
+  font-family: var(--wb-font-display);
+  font-size: calc(18px * var(--wb-scale));
+  color: var(--wb-deep);
+}
+.lab-rec {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--wb-rust);
+  color: #fff;
+  font-family: var(--wb-font-body);
+  font-size: var(--wb-text-label);
+  font-weight: 700;
+}
+.lab-card-kind {
+  font-size: var(--wb-text-label);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--wb-ink-muted);
+}
+.lab-card-line {
+  display: none;
+  margin-top: 2px;
+  font-size: var(--wb-text-secondary);
+  line-height: 1.35;
+}
+.lab-card[data-on] .lab-card-line {
+  display: block;
+}
+
+.lab-act {
+  display: grid;
+  justify-items: end;
+  gap: var(--wb-space-3);
+}
+.lab-reacts {
+  display: flex;
+  gap: var(--wb-space-2);
+}
+.lab-reacts button {
+  min-height: var(--wb-touch-min);
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--wb-deep);
+  font-weight: 700;
+  transition: transform var(--wb-dur-fast) var(--wb-ease-out);
+}
+.lab-reacts button:active {
+  transform: scale(0.96);
+}
+
+.lab-pour {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 64px;
+  min-width: 240px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wb-deep);
+  color: #fff;
+  font-size: calc(19px * var(--wb-scale));
+  font-weight: 700;
+  box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.15) inset,
+    0 12px 28px rgba(10, 37, 48, 0.35);
+  transition:
+    transform var(--wb-dur-fast) var(--wb-ease-out),
+    background var(--wb-dur-fast);
+}
+.lab-pour svg {
+  width: 24px;
+  height: 24px;
+}
+.lab-pour:hover:not(:disabled) {
+  background: #124a5c;
+}
+.lab-pour:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.lab-pour:disabled {
+  cursor: progress;
+  background: var(--wb-abyss);
+  color: var(--wb-mist);
+}
+
+/* Phones and narrow windows: a bottom sheet with a three-up picker. */
+@media (max-width: 420px) {
+  .lab-tag {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .lab-top {
+    padding-left: var(--wb-space-3);
+    padding-right: var(--wb-space-3);
+  }
+  .lab-brand {
+    padding: 4px 6px 4px 12px;
+  }
+  .lab-word {
+    font-size: calc(15px * var(--wb-scale));
+  }
+  .lab-progress {
+    min-width: 0;
+    padding: 8px 12px 10px;
+  }
+  .lab-num {
+    font-size: calc(22px * var(--wb-scale));
+  }
+  .lab-of {
+    font-size: var(--wb-text-label);
+  }
+  .lab-bar {
+    margin-bottom: 0;
+  }
+  .lab-sub {
+    display: none;
+  }
+  .lab-hint {
+    top: auto;
+    bottom: calc(var(--dock-h, 250px) + 12px);
+    white-space: normal;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    text-align: center;
+  }
+  .lab-dock {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--wb-space-3);
+    padding: var(--wb-space-3) var(--wb-space-3) max(var(--wb-space-3), env(safe-area-inset-bottom));
+    background: var(--wb-paper);
+    border-radius: var(--wb-radius-l) var(--wb-radius-l) 0 0;
+    box-shadow: 0 -10px 30px rgba(10, 37, 48, 0.2);
+  }
+  .lab-pick {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    width: auto;
+  }
+  .lab-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    box-shadow: none;
+    background: var(--wb-card);
+    text-align: center;
+  }
+  .lab-card svg {
+    width: 36px;
+    height: 36px;
+  }
+  .lab-card-name {
+    flex-direction: column;
+    gap: 2px;
+    font-size: calc(16px * var(--wb-scale));
+  }
+  .lab-card-kind,
+  .lab-card[data-on] .lab-card-line {
+    display: none;
+  }
+  .lab-rec {
+    font-size: 12px;
+  }
+  .lab-act {
+    justify-items: stretch;
+  }
+  .lab-name {
+    display: none;
+  }
+  .lab-reacts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .lab-reacts button {
+    box-shadow: none;
+    background: var(--wb-card);
+    padding: 0 6px;
+  }
+  .lab-pour {
+    min-width: 0;
+    width: 100%;
+    min-height: 58px;
+  }
+}
+
+.lab[data-reduced] .lab-hint {
+  animation: none;
+}
+
+/* ---- Consumer pour button: fills as the water lands; calmer once the goal is met ---- */
+.lab-pour {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.lab-pour-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--wb-shallows) 55%, var(--wb-deep));
+  transform-origin: left center;
+  transform: scaleX(var(--fill, 0));
+  transition: transform 120ms linear;
+}
+.lab-pour:disabled {
+  background: var(--wb-deep);
+  color: #fff;
+}
+.lab-pour[data-calm] {
+  min-height: 52px;
+  background: var(--wb-card);
+  color: var(--wb-deep);
+  font-size: var(--wb-text-button);
+  box-shadow: 0 8px 22px rgba(10, 37, 48, 0.2);
+}
+.lab-pour[data-calm]:hover:not(:disabled) {
+  background: #fff;
+}
+.lab-pour[data-calm]:disabled {
+  background: var(--wb-card);
+  color: var(--wb-ink-muted);
+}
+.lab-pour[data-calm] .lab-pour-fill {
+  background: var(--wb-mist);
+}
+
+/* "+250" rises out of the counter when a glass is logged. */
+.lab-ml {
+  position: relative;
+}
+.lab-chip {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  font-weight: 700;
+  font-size: var(--wb-text-label);
+  color: var(--wb-deep);
+  animation: lab-chip 1.6s var(--wb-ease-out) both;
+  pointer-events: none;
+}
+@keyframes lab-chip {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+.lab[data-reduced] .lab-chip {
+  animation-duration: 1.2s;
+  animation-name: lab-fade;
+}
+.lab-progress[data-met] .lab-bar span {
+  background: var(--wb-shallows);
+}
+
+/* ---- Lab tools: development only, deliberately not styled like product UI ---- */
+.lab-tools {
+  position: absolute;
+  left: var(--wb-space-4);
+  bottom: max(var(--wb-space-5), env(safe-area-inset-bottom));
+  z-index: 4;
+  max-width: 340px;
+  font-family: var(--wb-font-mono);
+  /* Its box is wider than the toggle on phones: only its contents take taps, never the strip
+     of scene (or the Pour button) around them. */
+  pointer-events: none;
+}
+.lab-tools > * {
+  pointer-events: auto;
+}
+.lab-tools-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wb-space-2);
+  min-height: 40px;
+  padding: 0 12px;
+  border: 2px dashed #b5651d;
+  border-radius: 8px;
+  background: #fff8ec;
+  color: #6b3a10;
+  font-family: var(--wb-font-mono);
+  font-size: var(--wb-text-label);
+  font-weight: 600;
+}
+.lab-dev-tag {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #6b3a10;
+  color: #fff8ec;
+}
+.lab-tools-body {
+  margin-top: 6px;
+  padding: 10px;
+  /* Short screens (a phone on its side): scroll inside, so the toggle never leaves the screen. */
+  max-height: calc(100dvh - 170px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 2px dashed #b5651d;
+  border-radius: 8px;
+  background: #fff8ec;
+  color: #3d2410;
+}
+.lab-tools-note,
+.lab-tools-meta {
+  margin: 0 0 8px;
+  font-size: var(--wb-text-label);
+  line-height: 1.4;
+}
+.lab-tools-meta {
+  margin: 6px 0 0;
+  color: #6b3a10;
+}
+.lab-tools-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.lab-tools-row button {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid #b5651d;
+  border-radius: 6px;
+  background: #fff;
+  color: #3d2410;
+  font-family: var(--wb-font-mono);
+  font-size: var(--wb-text-label);
+}
+.lab-tools-row button:hover:not(:disabled) {
+  background: #ffefd6;
+}
+
+@media (max-width: 860px) {
+  .lab-tools {
+    left: var(--wb-space-3);
+    right: var(--wb-space-3);
+    bottom: calc(var(--dock-h, 90px) + 10px);
+    max-width: none;
+  }
+  .lab-tools-toggle {
+    min-height: 36px;
+  }
+}
+
+/* The dock holds only the pour button now: keep it at the right on wide screens. */
+.lab-dock {
+  justify-content: flex-end;
+}
+
+/* Ripple arriving (the GLB is loading). */
+.lab-arriving {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+  box-shadow: 0 8px 24px rgba(10, 37, 48, 0.18);
+  font-size: var(--wb-text-secondary);
+  animation: lab-fade 600ms 300ms both var(--wb-ease-out);
+}
+.lab-tools-note code {
+  font-size: inherit;
+  word-break: break-all;
+}
+
+/* In dev builds the Lab tools toggle sits above the dock on phones; keep the hint clear of it. */
+@media (max-width: 860px) {
+  .lab:has(.lab-tools) .lab-hint {
+    bottom: calc(var(--dock-h, 90px) + 60px);
+  }
+}
+
+/* On phones the sip note sits just above the pour button, clear of Ripple. */
+@media (max-width: 860px) {
+  .lab-guard {
+    top: auto;
+    bottom: calc(var(--dock-h, 90px) + 12px);
+  }
+}
+
+/* Desktop: the sip note sits under the progress card, not over Ripple. */
+@media (min-width: 861px) {
+  .lab-guard {
+    left: auto;
+    right: var(--wb-space-4);
+    transform: none;
+    top: calc(max(var(--wb-space-4), env(safe-area-inset-top)) + 112px);
+    width: 380px;
+  }
+}
+/* Phones: while the sip note is up, the dev toggle steps out of its way. */
+@media (max-width: 860px) {
+  .lab:has(.lab-guard) .lab-tools {
+    display: none;
+  }
+}
+
+/* ---- First-visit guide: short, dismissible, reopened from the menu ---- */
+.lab-coach {
+  position: absolute;
+  /* Desktop: bottom-left over the bank, clear of Ripple, the pool's centre and the spout. */
+  left: var(--wb-space-4);
+  bottom: max(var(--wb-space-5), env(safe-area-inset-bottom));
+  width: min(380px, calc(100% - 32px));
+  padding: var(--wb-space-3) var(--wb-space-4) var(--wb-space-2);
+  border-radius: var(--wb-radius-m);
+  background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 8px 24px rgba(10, 37, 48, 0.18);
+  animation: lab-coach-in 600ms 1.4s both var(--wb-ease-out);
+}
+@keyframes lab-coach-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* In dev builds the Lab tools toggle sits in that corner; the guide goes just above it. */
+.lab:has(.lab-tools) .lab-coach {
+  bottom: 72px;
+}
+.lab-coach ul {
+  margin: 4px 0 2px;
+  padding: 0;
+  list-style: none;
+  font-size: var(--wb-text-secondary);
+}
+.lab-coach li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+}
+.lab-coach-text {
+  flex: 1;
+  min-width: 0;
+}
+/* A small dot that becomes a tick once that thing has been tried. */
+.lab-coach-mark {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--wb-deep);
+  transform: translateY(1px);
+}
+.lab-coach li[data-done] .lab-coach-mark {
+  background: var(--wb-deep);
+  box-shadow: inset 0 0 0 2px var(--wb-card);
+}
+.lab-coach-mark-info {
+  border-style: dotted;
+}
+.lab-coach-count {
+  color: var(--wb-ink-muted);
+  font-size: var(--wb-text-label);
+}
+.lab[data-reduced] .lab-coach {
+  animation: none;
+}
+
+/* Pour button with its Undo window above it. */
+.lab-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-left: auto;
+}
+.lab-undo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wb-space-3);
+  margin: 0;
+  padding: 0 4px 0 14px;
+  border-radius: var(--wb-radius-s);
+  background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+  box-shadow: 0 4px 14px rgba(10, 37, 48, 0.14);
+  font-size: var(--wb-text-secondary);
+  animation: lab-undo-in 240ms both var(--wb-ease-out);
+}
+@keyframes lab-undo-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.lab[data-reduced] .lab-undo {
+  animation: none;
+}
+
+@media (max-width: 860px) {
+  /* Phones: under the header, over the hills, so the pond, Ripple and the pads stay tappable. */
+  .lab-coach,
+  .lab:has(.lab-tools) .lab-coach {
+    left: 0;
+    right: 0;
+    bottom: auto;
+    margin-inline: auto;
+    top: calc(max(var(--wb-space-3), env(safe-area-inset-top)) + 72px);
+    padding: var(--wb-space-2) var(--wb-space-3) 2px;
+  }
+  .lab-coach ul {
+    font-size: var(--wb-text-label);
+  }
+  .lab-coach li {
+    padding: 2px 0;
+  }
+  /* The sip note matters more; the guide waits until it's gone. */
+  .lab:has(.lab-guard) .lab-coach {
+    display: none;
+  }
+  .lab-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .lab-undo {
+    box-shadow: none;
+    background: color-mix(in srgb, var(--wb-mist) 30%, transparent);
+  }
+}
+
+/* ---- Phones on their side: too short for the stacked phone dock. The controls go back to
+   the desktop arrangement (Pour bottom-right, no panel), so the scene keeps its height. ---- */
+@media (max-width: 960px) and (max-height: 500px) and (orientation: landscape) {
+  .lab-dock {
+    flex-direction: row;
+    align-items: flex-end;
+    padding: 0 var(--wb-space-3) max(var(--wb-space-3), env(safe-area-inset-bottom));
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .lab-actions {
+    margin-left: auto;
+    width: auto;
+  }
+  .lab-pour {
+    width: auto;
+    min-width: 0;
+    min-height: 48px;
+  }
+  .lab-undo {
+    background: color-mix(in srgb, var(--wb-card) 94%, transparent);
+    box-shadow: 0 4px 14px rgba(10, 37, 48, 0.14);
+  }
+  .lab-coach,
+  .lab:has(.lab-tools) .lab-coach {
+    top: auto;
+    right: auto;
+    margin-inline: 0;
+    left: var(--wb-space-3);
+    bottom: max(var(--wb-space-3), env(safe-area-inset-bottom));
+    width: min(250px, 30vw);
+    padding: 6px 10px 0;
+  }
+  .lab-coach ul {
+    font-size: var(--wb-text-label);
+  }
+  .lab-coach li {
+    padding: 1px 0;
+  }
+  .lab:has(.lab-tools) .lab-coach {
+    bottom: 60px;
+  }
+  .lab-tools {
+    right: auto;
+    bottom: max(var(--wb-space-3), env(safe-area-inset-bottom));
+  }
+}

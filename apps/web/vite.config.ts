@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json' with { type: 'json' };
@@ -39,11 +40,22 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2,glb}'],
+        // Lab-only files stay out of the app's offline copy, including Ripple's GLB until the app uses it.
+        globIgnores: ['lab/**', 'assets/lab-*', 'models/buddy/**'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
       },
       devOptions: { enabled: false }
     })
   ],
+  build: {
+    rollupOptions: {
+      // The Hero Experience Lab (/lab/) is a separate page with its own bundle, so the app is untouched.
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        lab: fileURLToPath(new URL('./lab/index.html', import.meta.url))
+      }
+    }
+  },
   // The app imports sourced facts from the repo-level content/ folder.
   server: { port: 5175, strictPort: false, fs: { allow: ['.', '../../content'] } },
   test: {

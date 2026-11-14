@@ -35,6 +35,9 @@ python3.12 -m venv .venv
 
 To let the app talk to the API, copy `apps/web/.env.example` to `apps/web/.env`.
 
+Hero Experience Lab (the new Buddy concepts, Spring Hollow and the 250 ml pour): with `npm run dev`
+running, open `http://localhost:5175/lab/`. It's a separate page; see `docs/hero-lab.md`.
+
 Reminders locally: run `.venv/bin/python -m app.vapid`, put the two keys in `apps/api/.env`
 with `WB_SCHEDULER_ENABLED=true`, then build and preview the web app (`npm run build && npm run preview`).
 Push needs the production service worker, so it doesn't work under `npm run dev`.
