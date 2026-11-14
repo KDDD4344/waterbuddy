@@ -2235,11 +2235,11 @@ img.album-art {
 /* V1 final: locked collectibles say what they are and how they unlock. */
 .album-locked {
   position: relative;
-  aspect-ratio: 4 / 3;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 2px;
+  justify-content: flex-start;
+  gap: 4px;
   padding: 10px 12px;
   border-radius: 6px;
   border: 1.5px dashed var(--wb-rule);
@@ -2253,11 +2253,11 @@ img.album-art {
   border-color: var(--wb-shallows);
 }
 .album-postmark {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 46px;
-  height: 46px;
+  align-self: flex-end;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2265,14 +2265,14 @@ img.album-art {
   border: 1.5px solid currentColor;
   border-radius: 50%;
   font-family: var(--wb-font-mono);
-  font-size: calc(9px * var(--wb-scale));
-  letter-spacing: 0.06em;
+  font-size: calc(7px * var(--wb-scale));
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   transform: rotate(-12deg);
   opacity: 0.8;
 }
 .album-postmark b {
-  font-size: calc(15px * var(--wb-scale));
+  font-size: calc(13px * var(--wb-scale));
   letter-spacing: 0;
 }
 .album-locked-title {
