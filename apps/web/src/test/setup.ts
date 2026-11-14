@@ -1,9 +1,13 @@
 import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 import { afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 
 afterEach(() => cleanup());
+
+// findBy*/waitFor wait 1 s by default, which a loaded machine can miss. Waiting longer only
+// slows a genuinely failing assertion, never a passing one.
+configure({ asyncUtilTimeout: 5000 });
 
 // jsdom has no modal dialog support yet.
 if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {

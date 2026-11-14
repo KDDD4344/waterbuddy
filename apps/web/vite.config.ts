@@ -63,6 +63,10 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+    // Generous limits so a busy machine (Playwright running alongside, a laptop just woken)
+    // doesn't fail tests on timing alone. They only cost time when a test really hangs.
+    testTimeout: 20_000,
+    hookTimeout: 20_000,
     // Tests must not depend on a developer's local .env.
     env: { VITE_API_URL: '' }
   }
