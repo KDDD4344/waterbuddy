@@ -262,6 +262,7 @@ test('You: data export downloads a file, and Delete everything returns to a fres
   await onboard(page);
   await page.getByRole('button', { name: /Log 250 ml/ }).click();
   await page.getByRole('button', { name: 'You', exact: true }).click();
+  await expect(page.getByText(/doesn’t sync to other devices or browsers/)).toBeVisible();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Download my data' }).click()

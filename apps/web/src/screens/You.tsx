@@ -197,7 +197,9 @@ export function You({ profile }: { profile: Profile }) {
       <section className="group" aria-labelledby="g-data">
         <h2 id="g-data">Your data</h2>
         <p className="small muted">
-          Everything is stored only on this phone.{profile.reminders?.on ? ' The reminder server keeps only what’s listed under Reminders.' : ''}
+          Everything is stored only on this phone, in this browser. It doesn&rsquo;t sync to other devices or browsers, and clearing this
+          site&rsquo;s data or uninstalling removes it, so download a copy if you want to keep it.
+          {profile.reminders?.on ? ' The reminder server keeps only what’s listed under Reminders.' : ''}
         </p>
         <div className="stack">
           <button type="button" className="btn ghost" onClick={() => setClearOpen(true)}>

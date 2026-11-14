@@ -100,7 +100,7 @@ export function Onboarding() {
             tomorrow I&rsquo;ll have a postcard for you.
           </p>
           <ul className="promises">
-            <li>Your drinks stay on this phone. No account needed.</li>
+            <li>Your drinks stay on this phone, in this browser. No account, and nothing syncs between devices.</li>
             <li>No streaks to lose, and never a nudge to drink more than you need.</li>
           </ul>
           <button type="button" className="link-btn" onClick={() => setPrivacyOpen(true)}>
