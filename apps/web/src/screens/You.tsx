@@ -403,7 +403,7 @@ function BuildInfo() {
   }, []);
   const installed = isInstalled();
   const api =
-    !health ? 'Checking…' : health.state === 'online' ? `Online, version ${health.version}` : health.state === 'not-configured' ? 'Not used yet' : 'Unreachable. The app still works.';
+    !health ? 'Checking…' : health.state === 'online' ? `Online, version ${health.version}` : health.state === 'not-configured' ? 'Not part of V1 (no background reminders)' : 'Can’t be reached right now, so reminders are off. Everything else works.';
   return (
     <section className="group" aria-labelledby="g-about">
       <h2 id="g-about">About this app</h2>

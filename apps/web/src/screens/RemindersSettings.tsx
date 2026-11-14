@@ -74,7 +74,12 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
         </p>
       ) : (
         <>
-          {support === 'no-server' && <p className="note">Reminders need the WaterBuddy server, which isn&rsquo;t connected in this version of the app.</p>}
+          {support === 'no-server' && (
+            <p className="note">
+              Background reminders aren&rsquo;t part of WaterBuddy V1: nothing is sent to your phone when the app is closed. A phone alarm or a
+              note by your water bottle works well in the meantime.
+            </p>
+          )}
           {support === 'unsupported' && <p className="note">This browser can&rsquo;t show reminders. Logging and everything else still work.</p>}
           {support === 'needs-install' && (
             <p className="note">On iPhone and iPad, reminders work once WaterBuddy is on your Home Screen. See &ldquo;Install WaterBuddy&rdquo; below.</p>

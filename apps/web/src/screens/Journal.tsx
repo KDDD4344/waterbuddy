@@ -175,6 +175,7 @@ function Stickers() {
       <p className="small muted">
         {earned.length} of {FIELD_TASKS.length} pressed in
       </p>
+      <p className="small muted">Each field task you finish adds its sticker for good; a skipped task comes back the next day.</p>
       <ul className="sticker-grid">
         {FIELD_TASKS.map((t) =>
           done.has(t.id) ? (
@@ -182,8 +183,16 @@ function Stickers() {
               <Sticker id={t.sticker} size={52} />
             </li>
           ) : (
-            <li key={t.id} className="sticker-slot" aria-label="Empty sticker slot">
-              <span aria-hidden="true">{t.day}</span>
+            <li key={t.id} className="sticker-slot locked">
+              <span className="sticker-ghost" aria-hidden="true">
+                <Sticker id={t.sticker} size={40} />
+              </span>
+              <span className="sticker-day" aria-hidden="true">
+                Task {t.day}
+              </span>
+              <span className="sr-only">
+                Not earned yet: comes with field task {t.day}, {t.title}.
+              </span>
             </li>
           )
         )}

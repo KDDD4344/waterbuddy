@@ -50,7 +50,9 @@ export function Today({ profile }: { profile: Profile }) {
   // After last call Pip stops counting down, so the app never nudges anyone to drink late (safety rule 3).
   const remaining = Math.max(0, profile.goalMl - total);
   const subline = p.reached
-    ? `Goal reached · ${p.percent}% · Ripple sets off tonight and will send a postcard.`
+    ? total > profile.goalMl
+      ? `Goal reached · 100% · ${fmt(total - profile.goalMl)} over your ${fmt(profile.goalMl)} goal. No need for more unless you’re thirsty.`
+      : `Goal reached · ${p.percent}% · Ripple sets off tonight and will send a postcard.`
     : lastCalled
       ? `of ${fmt(profile.goalMl)} · ${p.percent}% · last call was ${clockLabel(lastCallTime(profile.bedtime))}. More tomorrow.`
       : `of ${fmt(profile.goalMl)} · ${p.percent}% · ${fmt(remaining)} to go`;

@@ -118,7 +118,7 @@ export function PostcardAlbum() {
         {got.size} of {ROUTE_1.length} · Ripple sends a card the morning after each day you reach your goal.
       </p>
       <ul className="album">
-        {ROUTE_1.map((c) =>
+        {ROUTE_1.map((c, i) =>
           got.has(c.id) ? (
             <li key={c.id}>
               <button type="button" className="album-card" onClick={() => setOpen(c.id)}>
@@ -127,8 +127,16 @@ export function PostcardAlbum() {
               </button>
             </li>
           ) : (
-            <li key={c.id} className="album-empty" aria-label={`Postcard ${c.number}, still at sea`}>
-              <span aria-hidden="true">{c.number}</span>
+            <li key={c.id} className="album-locked" data-next={i === got.size || undefined}>
+              <span className="album-postmark" aria-hidden="true">
+                <span>Route I</span>
+                <b>{c.number}</b>
+              </span>
+              <span className="album-locked-title">{i === got.size ? 'Arrives next' : 'Still at sea'}</span>
+              <span className="album-locked-hint">
+                {i === got.size ? 'The morning after your next goal day' : `After ${i - got.size + 1} more goal days`}
+              </span>
+              <span className="sr-only">Postcard {c.number} of {ROUTE_1.length} is not here yet.</span>
             </li>
           )
         )}

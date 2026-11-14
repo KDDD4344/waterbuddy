@@ -211,3 +211,65 @@ for (const [name, size] of [
     expect(pour!.y + pour!.height).toBeLessThanOrEqual(bar!.y + 1);
   });
 }
+
+test('over the goal: the real total is kept, the bar stays at 100%, and nothing invites more', async ({ page }) => {
+  await onboard(page);
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: /Log 500 ml/ }).click();
+    await page.waitForTimeout(700);
+  }
+  await page.getByRole('button', { name: /Log 250 ml/ }).click();
+  await expect(stat(page)).toContainText('2,250 millilitres of 2 litres');
+  await expect(page.getByText(/Goal reached · 100% · 250 ml over your 2 L goal\. No need for more/)).toBeVisible();
+  await expect(page.getByRole('progressbar', { name: "Today's goal" })).toHaveAttribute('aria-valuenow', '100');
+});
+
+test('a drink can be edited, deleted, and the deletion undone', async ({ page }) => {
+  await onboard(page);
+  await page.getByRole('button', { name: /Log 500 ml/ }).click();
+  await expect(stat(page)).toContainText('500 millilitres');
+  await page.locator('.entries').getByRole('button').first().click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByRole('textbox').or(sheet.getByRole('spinbutton')).first().fill('400');
+  await sheet.getByRole('button', { name: 'Save' }).click();
+  await expect(stat(page)).toContainText('400 millilitres');
+  await page.locator('.entries').getByRole('button').first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+  await expect(stat(page)).toContainText('0 millilitres');
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(stat(page)).toContainText('400 millilitres');
+  await page.reload();
+  await expect(stat(page)).toContainText('400 millilitres');
+});
+
+test('Journal: locked postcards and stickers say how they unlock, and nothing is shown as earned before it is', async ({
+  page
+}) => {
+  await onboard(page);
+  await page.getByRole('button', { name: 'Journal' }).click();
+  const album = page.locator('.album');
+  await expect(album.locator('.album-card')).toHaveCount(0);
+  await expect(album.locator('.album-locked')).toHaveCount(6);
+  await expect(album.locator('.album-locked').first()).toContainText('Arrives next');
+  await expect(album.locator('.album-locked').nth(2)).toContainText('After 3 more goal days');
+  await expect(page.getByText('0 of 6 · Ripple sends a card')).toBeVisible();
+  await expect(page.locator('.sticker-slot.earned')).toHaveCount(0);
+  await expect(page.locator('.sticker-slot.locked')).toHaveCount(14);
+  await expect(page.locator('.sticker-slot.locked').first()).toContainText('Task 1');
+});
+
+test('You: data export downloads a file, and Delete everything returns to a fresh start', async ({ page }) => {
+  await onboard(page);
+  await page.getByRole('button', { name: /Log 250 ml/ }).click();
+  await page.getByRole('button', { name: 'You', exact: true }).click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Download my data' }).click()
+  ]);
+  expect(download.suggestedFilename()).toMatch(/^waterbuddy-\d{4}-\d{2}-\d{2}\.json$/);
+  const body = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString()));
+  expect(body.logs.map((l: { ml: number }) => l.ml)).toEqual([250]);
+  await page.getByRole('button', { name: 'Delete everything' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete permanently' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Hi, I’m Ripple' })).toBeVisible();
+});
