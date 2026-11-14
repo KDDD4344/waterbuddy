@@ -4,9 +4,11 @@ import {
   drunk,
   localDate,
   logGlass,
+  mergeDays,
   progress,
   removeEntry,
   restoreDay,
+  sameDay,
   serializeDay,
   startingDay,
   undoLast,
@@ -148,7 +150,9 @@ describe('saving the day and undo', () => {
 
   it("files a day under its own date, not the moment it's saved", () => {
     const day = logGlass(startingDay(2000, 750, NOW), NOW).day;
-    const nextMorning = new Date(NOW.getTime() + 10 * 60 * min);
+    // 00:30 the next day in whatever timezone the tests run in (not "10 hours later", which is
+    // still the same day in UTC).
+    const nextMorning = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate() + 1, 0, 30);
     const raw = serializeDay(day, localDate(NOW));
     expect(restoreDay(raw, NOW)).toEqual(day);
     // Saved just after midnight, it's still yesterday's day, so it isn't shown as today.
@@ -173,6 +177,53 @@ describe('saving the day and undo', () => {
     expect(drunk(again.day)).toBe(1000);
     // Still remembered after a reload.
     expect(restoreDay(serializeDay(day, NOW), NOW)?.celebrated).toBe(true);
+  });
+});
+
+describe('two tabs saving at the same moment', () => {
+  const min = 60 * 1000;
+  const start = startingDay(2000, 750, NOW);
+
+  it('keeps both glasses, whichever save lands first', () => {
+    // Each tab logs onto the same starting day without seeing the other's glass.
+    const tabA = logGlass(start, NOW).day;
+    const tabB = logGlass(start, new Date(NOW.getTime() + 1)).day;
+    const ab = mergeDays(tabA, tabB);
+    const ba = mergeDays(tabB, tabA);
+    expect(drunk(ab)).toBe(1250);
+    expect(sameDay(ab, ba)).toBe(true);
+    // Merging again changes nothing.
+    expect(sameDay(mergeDays(ab, tabB), ab)).toBe(true);
+  });
+
+  it('two glasses at the exact same millisecond are still two glasses', () => {
+    const tabA = logGlass(start, NOW).day;
+    const tabB = logGlass(start, NOW).day;
+    expect(drunk(mergeDays(tabA, tabB))).toBe(1250);
+  });
+
+  it('an undone glass stays undone even if the other tab still has it', () => {
+    const both = mergeDays(logGlass(start, NOW).day, logGlass(start, new Date(NOW.getTime() + min)).day);
+    const glass = both.logs.find((l) => l.source === 'logged')!;
+    const undone = removeEntry(both, glass).day;
+    // The other tab hasn't heard about the undo yet: its copy still has the glass.
+    const merged = mergeDays(both, undone);
+    expect(drunk(merged)).toBe(1000);
+    expect(merged.logs.some((l) => l.id === glass.id)).toBe(false);
+  });
+
+  it('survives a save and reload, ids and undo markers included', () => {
+    const two = logGlass(logGlass(start, NOW).day, NOW).day;
+    const d = removeEntry(two, two.logs.at(-1)!).day;
+    expect(d.removed).toHaveLength(1);
+    const back = restoreDay(serializeDay(d, NOW), NOW)!;
+    expect(sameDay(back, d)).toBe(true);
+    expect(drunk(back)).toBe(1000);
+  });
+
+  it('older saves without ids still merge without duplicates', () => {
+    const old = { goal: 2000, logs: [{ ml: 250, at: NOW.toISOString(), source: 'logged' as const }] };
+    expect(drunk(mergeDays(old, old))).toBe(250);
   });
 });
 

@@ -1,153 +1,113 @@
-# Hero Lab: interaction QA and stability pass
+# Hero Lab: QA report (release readiness)
 
-**Date:** 12–13 November 2026. **Build:** the uncommitted `/lab/` prototype (iteration 7 plus the fixes below). **Scope:** test what exists. No scene changes and no new features; only the fixes the tests called for.
+**Updated:** 14 November 2026. **Branch:** `hero-lab` (checkpoint commit `ea1d5bf`, plus this round's fixes, uncommitted).
 
-## Summary
+## Verdict: not release-ready yet
 
-- **Final QA run:** 235 of 238 checks passed. All three failures were investigated (see "Failed interactions"):
-  - one was a dev-tools layout bug, now fixed;
-  - two were intermittent and passed on repeat runs.
-- **Bugs found:** 11 product and dev-tool bugs, all fixed. Each fix has a regression test where one is practical.
-- **Hydration:** only the Pour button logs water; every press adds exactly 250 ml; double-clicks never duplicate; Undo removes exactly the right glass. Camera moves and scene taps never touch the records, on any device tested.
-- **Suites after the fixes:** 137 unit tests and 28 browser tests pass (Chrome and Safari engines). Typecheck and lint are clean.
-- **Not tested:** real phones. Everything here ran on this Mac in emulated devices; see "Remaining limitations".
+The automated results are good and every issue found so far is fixed. But the Hero Lab has **not been tested on a single real phone**, and the screen-reader checks so far are automated only. Those are the main ways people will use it, so it can't be called release-ready until the device procedure ([`hero-lab-device-testing.md`](hero-lab-device-testing.md)) has been run on a real iPhone and a real Android phone and its results recorded here.
 
-## How it was tested
+## 1. Automated tests passed
 
-| Environment | Engine | Input |
+All automated results here are from this Mac (Apple M5): Chromium on the real GPU, Chromium on a software renderer, and WebKit (Safari's engine). Devices are emulated.
+
+| Suite | Result | What it covers |
 |---|---|---|
-| Desktop 1280×800 | Chromium on the Mac's GPU (Apple M5, Metal) | Real mouse, wheel and keyboard events |
-| Android phone (Pixel 7, 412×839) | Chromium, GPU | Real touch events (Chrome DevTools protocol), multi-touch pinch |
-| iPhone 14 (390×664) | WebKit (Safari's engine) | Synthetic pointer events, hit-tested like real touches |
-| Phone in landscape (Pixel 7, 839×360) | Chromium, GPU | Real touch events |
-| Layout sizes | Chromium | iPhone SE 375×667, Pixel 7, phone landscape 844×390, iPad 820×1180, laptop 1280×720, desktop 1920×1080; each with and without the DEV tools |
-| Reduced motion | Chromium, GPU | `prefers-reduced-motion: reduce` |
+| Unit tests (Vitest) | **142 / 142** in each of six timezones (UTC−11 to UTC+14) | Hydration rules, saving, two-tab merging, Undo, midnight, animation clips, plus the whole app's own tests |
+| App tests, clock sweep (by the companion session) | **All pass** at every hour, every 30 minutes, every 5 minutes around the boundaries, and at 05:50 exactly (368 runs) | The two app tests once thought to depend on the time of day (see "Corrections") |
+| Browser suite, production build (Playwright) | **65 / 65 passed** (30 lab, 35 app); 3 skipped by design (the app's iPhone-only and Chromium-only push tests) | App and lab, in Chrome (Pixel 7) and Safari (iPhone 14) engines. The app passes unchanged alongside the lab |
+| Interaction QA harness, previous round | 235 / 238, then the 3 failures investigated (below) | Camera, every scene interaction, hydration, onboarding, layout at 6 sizes, reduced motion |
+| Two tabs, one after the other | **10 / 10** runs kept exactly both glasses | Clean browser each run, display held awake |
+| Two tabs pouring at the same instant | **10 / 10** after the fix (**0 / 8** before) | Same |
+| Tap storm (24 taps plus a drag) | **5 / 5** runs: no long tasks, slowest frame 17.8 ms, steady 60 fps | Production build, clean browser, display awake |
+| Accessibility checks | **38 / 38** after the fixes (**35 / 38** before) | Keyboard, screen-reader names and announcements, touch targets at 3 sizes, contrast, reduced motion, audio |
 
-A scripted harness drove every check against the dev server and read the scene's real state: the camera angles, the clip playing, ripple strengths, pad motion, the trickle, the saved day and the console. Screen positions were projected from the 3D scene, so taps land on Ripple, a pad, the spout or the water at whatever the framing is. The Playwright suite (`e2e/lab.spec.ts`) runs separately against the production build.
+### Accessibility, in detail
+- **Keyboard:**
+  - The tab order is the scene, Settings, the guide's Got it, then Pour; Undo sits just before Pour when it's offered. Every stop shows a visible focus ring.
+  - Enter works on every button, Escape closes the guide and the settings menu, and arrow keys and +/− look around.
+  - Undo stays while it has focus, and focus moves to Pour after an Undo.
+- **Screen readers (automated):**
+  - The 3D canvas is hidden from screen readers; the scene has a label that explains the keys.
+  - The progress card reads as text, and the guide is a labelled region with its three lines as a list.
+  - A polite live region announces "Pouring…", the result plus "Undo is available just before the Pour button", and "Undone…".
+- **Touch targets:** every control is at least 48×48 px on iPhone SE, Pixel 7 and a phone in landscape (WCAG 2.2 asks for 24×24; Apple and Android guidance for 44–48).
+- **Contrast:** every piece of text is at least **5.3:1** against the worst case behind it (the translucent panels tested over the scene's darkest and lightest colours). WCAG AA asks for 4.5:1, or 3:1 for large text.
+- **Reduced motion** (system setting or the in-app switch): no opening camera move and no entrance animations. A celebration becomes a gentle happy with no camera swoop, pouring moves no camera, and flicks stop at once.
+- **Audio:** silent by default; no audio is created until Sound is switched on. With Sound on, the ambience, pour, water taps and Ripple taps each make sound; switching it off silences everything.
 
-## Working interactions
+## 2. Real-device tests completed
 
-### Camera
-| Check | Desktop | Android | iPhone | Landscape |
-|---|---|---|---|---|
-| Drag turns the view, smoothly (largest per-frame step 0.004–0.021 rad, no jitter) | ✓ | ✓ | ✓ | ✓ |
-| Release glides, then stops | ✓ | ✓ | ✓ | ✓ |
-| Limits hold in all four directions; pushing past meets resistance and springs back | ✓ | ✓ | ✓ | ✓ |
-| Ripple stays in frame at every limit and zoom (8 extremes) | ✓ | ✓ | ✓ | ✓ |
-| Scroll zooms, eased; clamps at 3.4 and 9.5 | ✓ | | | |
-| Trackpad pinch (ctrl+wheel) zooms; the wheel never scrolls the page | ✓ | | | |
-| Right-button drag doesn't turn the view; no context menu on the scene | ✓ | | | |
-| Arrow keys turn the view, eased | ✓ | | | |
-| Pinch out zooms in, pinch in zooms out, clamped | | ✓ | ✓ | ✓ |
-| Lifting one finger after a pinch doesn't jump the view | | ✓ | ✓ | ✓ |
-| A small finger wobble during a tap doesn't turn the view | | ✓ | ✓ | ✓ |
-| Gestures never scroll or zoom the page | | ✓ | ✓ | ✓ |
-| A drag released over Pour doesn't pour | ✓ | ✓ | ✓ | ✓ |
-| A drag that starts on a button (the menu) doesn't turn the view | ✓ | ✓ | ✓ | ✓ |
+**None.** No physical iPhone or Android phone has been used yet. The procedure is ready: [`hero-lab-device-testing.md`](hero-lab-device-testing.md) (sections A–G, about 60 steps, with a results template).
 
-### Things in the scene
-Each one gives its own response, checked in the scene's state, not by eye:
+## 3. Issues fixed
 
-| Tap | Response checked | Desktop | Android | iPhone | Landscape |
-|---|---|---|---|---|---|
-| Ripple, idle | happy clip plays | ✓ | ✓ | ✓ | ✓ |
-| Ripple, mid-reaction | giggle layered on; the clip keeps running (time 0.20 → 0.33 s, not reset) | ✓ | ✓ | ✓ | ✓ |
-| Ripple, three taps in 6 s | curious ("what is it?") | ✓ | ✓ | ✓ | ✓ |
-| Ripple, while celebrating | celebration not interrupted | ✓ | ✓ | ✓ | ✓ |
-| Ripple, during a pour | the pour carries on | ✓ | ✓ | ✓ | ✓ |
-| Water, tap | small ring (strength 0.70) | ✓ | ✓ | ✓ | ✓ |
-| Water, press and hold | bigger plunge plus a rebound ring (3–4 live rings) | ✓ | ✓ | ✓ | ✓ |
-| Lily pad | dips (bob −0.4), turns (spin ≈ 0.4–0.5), petals ruffle | ✓ | ✓ | ✓ | ✓ |
-| Bamboo spout | ~1 s trickle of droplets; no pour, nothing logged | ✓ | ✓ | ✓ | ✓ |
-| Bamboo spout, during a pour | ignored | ✓ | ✓ | ✓ | ✓ |
-| Hover (desktop) | hand cursor over Ripple, pads and the spout; none over plain scenery | ✓ | | | |
+### This round
+| Issue | Found by | Fix | Verified by |
+|---|---|---|---|
+| **Two tabs pouring at the same instant lost a glass** (0 of 8 runs kept both; both tabs showed 1,000 instead of 1,250, and a reload kept the loss). Each tab saved its whole day, so the second save overwrote the first. | Repeat test, clean browser | Every glass now has an id, and an Undo leaves a removal marker. Each tab merges with what's stored before saving, and merges (never replaces) when another tab saves. The merge is order-independent, so both tabs converge. | 10 / 10 simultaneous, 10 / 10 sequential; 5 new unit tests; new browser test |
+| **Undo vanished after 10 s even while focused**, losing keyboard focus to the page: a time limit a keyboard or screen-reader user couldn't extend | Accessibility check | The countdown pauses while Undo has focus or a pointer over it; after Undo, focus moves to Pour | Accessibility check |
+| **Escape didn't close the settings menu** | Accessibility check | Escape closes it and returns focus to ☰ | Accessibility check |
+| **Undo appeared silently for screen-reader users** | Accessibility check | The pour announcement now ends "Undo is available just before the Pour button." | Accessibility check |
+| **One lab unit test assumed India time** (it failed under UTC and Los Angeles time, the usual CI timezones) | Timezone run | The test builds "the next morning" in local time | 142 / 142 in six timezones |
+| **No guard against iOS's long-press callout or double-tap page zoom** (press-and-hold on the water lasts about a second) | Review for the device procedure | `-webkit-touch-callout: none` and no text selection on the scene; `touch-action: manipulation` on buttons | **Not verified: needs a real iPhone** (device steps B9, B10, C5) |
+| App tests timing out under heavy CPU load (by the companion session) | Load test: 3 / 42 full runs passed with 20 CPU hogs | Longer test timeouts (`testTimeout` 20 s; Testing Library waits 5 s) | 28 / 28 under the same load |
 
-### Hydration
-| Check | Desktop | Android |
+### Previous round (interaction QA)
+- **Data integrity:**
+  - two tabs overwrote each other;
+  - a page left open past midnight filed yesterday's drinks under today;
+  - Undo targeted "the latest glass" instead of its own.
+- **Guide:** it came back on every visit for anyone who never pressed Got it.
+- **Ripple taps:** "keep tapping and Ripple turns curious" couldn't happen; a tap on Ripple's chest once read as the ground (a safety net was added).
+- **Landscape phones:** the dock took half the screen.
+- **DEV tools:** they blocked taps and could push their own toggle off a short screen.
+- **Robustness:** pointer capture could throw; a scene closed mid-load leaked Ripple's model.
+
+### Outstanding failures from the last report, re-investigated
+| Report | Repeated how | Result |
 |---|---|---|
-| One press adds exactly 250 ml (one entry, `ml: 250`) | ✓ | ✓ |
-| Double-click logs once | ✓ | ✓ |
-| Three clicks in the same instant log once | ✓ | ✓ |
-| Enter pressed twice logs once | ✓ | ✓ |
-| Undo is offered after a glass, and disappears after 10 s | ✓ | ✓ |
-| Undo, even double-clicked, removes exactly the glass it was offered for | ✓ | ✓ |
-| The spring follows Undo (progress 0.75 at 1,500 of 2,000 ml) | ✓ | ✓ |
-| The goal is celebrated once; undoing that glass and logging again doesn't celebrate twice | ✓ | ✓ |
-| A reload keeps every glass | ✓ | ✓ |
-| Taps on Ripple, the water, a pad and the spout, drags, scrolls and pinches change nothing; only the one pour added an entry | ✓ | ✓ (and iPhone, landscape) |
+| Two tabs: 3 entries instead of 2 (once) | 10 sequential runs plus 10 simultaneous runs; production build; a fresh browser each run; display held awake; no other test browsers running | **Not reproduced** (20 / 20 correct). Simultaneous pours did reveal a **different, real bug** (a lost glass, not a duplicate), fixed above. The one-off duplicate happened during a run when a crashed earlier run had left a browser rendering the lab in the background for hours. That wasn't a second tab of the same profile, so I can't link it to the duplicate with certainty, and it stays listed as unexplained. |
+| 100–200 ms stalls during tap storms | 5 storms, same clean conditions | **Not reproduced**: no long tasks, slowest frame 17.8 ms, steady 60 fps. The earlier stalls were all inside `render()` (the GPU), never in tap handling. They coincided with the stray browser and the display sleeping. |
+| Simultaneous pours from two tabs | See the first row | **Was a real bug, now fixed.** |
 
-### Persistence and daily rollover
-- ✓ **Damaged data:** a fresh day, no crash.
-- ✓ **Yesterday's saved day:** not shown today.
-- ✓ **Storage blocked:** logging still works, with no errors.
-- ✓ **Midnight:** with the clock moved past midnight while the page stays open, a new day starts and no entry from the previous day carries over.
-- ✓ **Two tabs:** both tabs keep each other's glasses.
+### Corrections to the last report
+- **The two app tests weren't time-dependent.** The last report said they depended on the time of day. That was wrong. The companion session's sweep faked the clock at every hour, every 5 minutes around the boundaries and at the exact failing minute, and both passed every time. What fails them is CPU load: the night they failed, a stray browser was pinning the CPU, and the same "2 failed" pattern reproduces under artificial load. The fix is the longer timeouts above, not a pinned clock.
+- **What controlling the clock and timezone showed:** every hour (sweep) and six timezones (this round) pass. The only zone-dependent test was one of the lab's own, now fixed.
 
-### Onboarding ("Explore the spring")
-Checked on desktop, Android and landscape:
-- ✓ **First visit:** shown, and it doesn't cover Ripple, a pad, the spout or the water.
-- ✓ **Ticks:** it ticks off what's been tried ("1 of 4 found").
-- ✓ **Dismissing:** Got it dismisses it, and it stays dismissed for a returning visitor. Escape closes it too.
-- ✓ **Reopening:** Settings → How to explore reopens it, and the menu closes when it does.
-- ✓ **Retiring:** it isn't shown again to someone who has already looked around and touched something, even without pressing Got it.
+## 4. Remaining known limitations
 
-### Technical
-- ✓ **No console errors:** none in any run, on any engine, including during dispose.
-- ✓ **No console warnings.**
-- ✓ **One render loop:** a single loop (30 rAF requests for 30 frames). The GLB is downloaded once, even with React's dev-mode double mount.
-- ✓ **Cleanup:** disposing the scene stops the loop (0 frames afterwards) and removes all input listeners.
-- ✓ **Reduced motion:** the system setting is honoured. A flick stops almost at once, a long press still ripples without spray, and Ripple still reacts.
-- ✓ **Layout:** at all six sizes, with and without the DEV tools: no overlapping controls, everything on screen, no sideways scroll, and Ripple's face never hidden behind a control.
-- **Frame cost:** no change from this pass (M5: ~19 ms per frame at 2560×1600 uncapped, ~6.8 ms at phone size). The worst case, software rendering on CPU as CI uses, runs at 3 fps after dropping to 0.75× resolution, and everything still works there (the browser suite runs on it).
+- **No real-device testing yet** (section 2). Until then, everything about real touch handling, Safari and Chrome's own gestures, real GPUs and heat is unverified.
+- **Screen readers:** VoiceOver and TalkBack haven't been used. The automated checks only confirm names, roles and announcements. The scene itself is marked as an application (so arrow keys work); how VoiceOver and TalkBack treat that needs a person (device step G5).
+- **The 3D scene is pointer-only:** Ripple, the water, the pads and the spout can't be "tapped" from the keyboard or a screen reader. Looking around works from the keyboard. Logging, Undo, settings and the guide are fully accessible, and nothing in the scene affects hydration. Making the scene's toys keyboard-operable would be a new feature, so it isn't in this pass.
+- **Sound on iPhone:** Safari usually mutes web audio when the ring/silent switch is on silent. Not tested (device step G7).
+- **Two tabs pressing Pour in the very same instant** now merge correctly in tests. Real browsers in separate processes have only been exercised on this Mac.
+- **Unexplained one-off:** the single two-tab duplicate from the last round wasn't reproduced in 20 clean runs. If it ever reappears, the entries now carry ids, which would show whether it's a true duplicate (same id) or an extra glass.
+- **Text size:** the lab uses fixed sizes. The phone's large-text setting doesn't enlarge it (device step A5 records how it looks).
+- **Frame cost:** M5 only, about 19 ms per frame at 2560×1600 uncapped, 6.8 ms at phone size. The software renderer runs at 3 fps (functional, used by CI). Mid-range phones are unmeasured.
 
-## Failed interactions
+## 5. Items that require manual verification
 
-These are the failures from the final run, and what each one was:
+All of these are in [`hero-lab-device-testing.md`](hero-lab-device-testing.md), on both a real iPhone (Safari) and a real Android phone (Chrome):
 
-1. **Landscape phone, DEV Lab tools wouldn't close.** A real dev-tool bug. On a 360 px-tall screen the open panel was 409 px tall and pushed its own toggle off the top of the screen. **Fixed:** the panel now scrolls inside the screen.
-2. **Two tabs: 3 entries instead of 2 (once).** It passed in the earlier post-fix run, in the re-run, and in the production-build browser suite on both engines. I couldn't reproduce or explain the extra entry.
-3. **Tap storm: a 200 ms stall (once).** The stall was inside a single `render()` call, not in any tap or hover handler: across all storms, no handler took over 20 ms. No shaders compile late. A re-run gave a worst stall of 107 ms, then two more storms gave none and one 193 ms frame, again inside `render()`.
+- **Layout:** notch and safe areas, the browser toolbar collapsing, rotation, large text, dark mode (A1–A6).
+- **Gestures:** one-finger look, flick, limits, pinch (with no page zoom), the iOS edge-swipe Back, Android pull-to-refresh, double-tap and long-press behaviour (B1–B11). B9 and B10 also verify this round's CSS guards.
+- **Scene responses:** every scene interaction on a real touchscreen (C1–C10).
+- **Hydration on the device:**
+  - exact +250, double-tap, Undo;
+  - reload, closing the tab, switching apps, locking mid-pour;
+  - two tabs, the goal, the next day, private browsing, airplane mode (D1–D13).
+- **Browser navigation:** Back and Forward, reload mid-pour, returning to a background tab (E1–E5).
+- **Performance on real GPUs:** fps and frame time idle, during a pour and while dragging; heat after 5 minutes; Low Power Mode (F1–F6).
+- **Accessibility on the device:** VoiceOver and TalkBack reading order and announcements, the system Reduce Motion setting, sound including the iPhone silent switch, a Bluetooth keyboard (G1–G9).
 
-**What the test machine was doing.** Two things made the GPU-window runs unreliable during this pass:
-- **A stray browser:** a crashed section of the final run never closed its browser. It rendered the lab in the background for hours, competing for the GPU. The harness now always closes its browsers.
-- **Display sleep:** after midnight the display was allowed to sleep, which throttles visible browser windows. That stalled every later GPU-window run.
+The verdict changes to release-ready only after these are recorded, with any ✗ fixed or explicitly accepted.
 
-Failures 2 and 3 coincided with both. They are not confirmed product bugs, but they also weren't cleanly re-verified on an awake, quiet machine before this report.
+## How the automated checks were run
 
-## Bugs discovered and fixes implemented
-
-| # | Bug | How it showed | Fix | Regression test |
-|---|---|---|---|---|
-| 1 | **Two tabs overwrote each other.** Whichever tab saved last won, so the other tab's glass was lost. | QA: 1 of 2 glasses saved | Each tab picks up the other's changes (`storage` event) before it saves its own | e2e: "two open tabs keep each other's glasses" |
-| 2 | **A page left open past midnight filed yesterday's drinks under today.** It saved with the current date, not the day's own. | QA (clock moved past midnight): 3 entries from the previous day carried over | A day keeps its own date; a new day starts at midnight (checked every 30 s, on return to the tab, and before each pour); the demo's seeded entries never fall before midnight | unit: saving under the day's date; fresh day after midnight |
-| 3 | **Undo removed "the latest glass", not the glass it was offered for.** After a glass from another tab arrived, Undo would have removed that one. | Code review, confirmed with the two-tab fix | Undo removes that exact entry; a second Undo for it does nothing | unit and e2e |
-| 4 | **The guide came back on every visit for anyone who never pressed Got it.** | QA: shown on visits 2 and 3 | It retires once someone has looked around and touched something, and opens by itself on at most two visits | e2e: "the guide retires…" |
-| 5 | **"Keep tapping Ripple and it turns curious" couldn't happen.** Taps during the happy reaction weren't counted. | QA, all devices | Every tap on Ripple counts (three within 6 s) | QA harness |
-| 6 | **A tap on Ripple's chest once read as the ground behind it.** 1 run in 11, desktop; not reproduced in 10 instrumented runs. | QA | Safety net: if the exact mesh test misses, a tap squarely on Ripple's head or chest still counts (two small inner spheres; nothing nearer can be stolen) | QA harness |
-| 7 | **Landscape phones:** the portrait dock took nearly half the height, Ripple's head was cut off, and the guide covered the pool. | QA screenshots | Phones on their side use the desktop arrangement (Pour bottom-right, no panel) and a narrower guide | QA layout checks |
-| 8 | **DEV Lab tools:** its box spanned the screen width on phones, catching scene taps above the dock and, in landscape, taps on Pour. | QA: Pour click intercepted by `.lab-tools` | Only its contents take taps | QA layout checks |
-| 9 | **DEV Lab tools pushed its toggle off a short screen** (finding 1 above). | QA | Panel scrolls inside the screen | QA |
-| 10 | **Pointer capture could throw** (for a pointer the browser no longer tracks), aborting the press. | WebKit run: page error | Capture failure is ignored; input carries on | QA, iPhone |
-| 11 | **A scene torn down while Ripple was loading still reported back and leaked the model.** This happens in dev (React's double mount) or when leaving the page mid-load. | Code review | Loading checks for disposal and frees what it loaded | (dev only; covered by the "single render loop / GLB once" checks) |
-
-**Not bugs:**
-- **WebKit "Couldn't load texture" errors:** these appeared only when the harness reloaded the page mid-load, which aborts the old page's texture decode. On a clean load the textures decode as 512 px WebP images. I changed the harness, not the app.
-- **iPhone gesture failures in the first runs:** they came from the harness's synthetic touches not hit-testing like real ones. Fixed in the harness.
-
-## Remaining limitations
-
-- **Real phones:** no real phone or tablet has been tested. Touch was emulated: real touch events on Chromium, synthetic pointer events on WebKit. The WebKit runs don't exercise Safari's own gestures (edge swipe-back, the browser's pinch-to-zoom, iOS long-press menus). **Next step:** `/lab/?dev` on an iPhone and a mid-range Android; Lab tools shows fps and frame times.
-- **Unconfirmed spikes and the two-tab miss:** the occasional 100–200 ms frame during the tap storm and the single two-tab miss (failures 2 and 3) haven't been re-checked on an awake, quiet machine. That's the first thing to repeat.
-- **Two tabs pouring in the same instant:** they could still race. The sync covers anything more than a moment apart.
-- **Midnight timing:** if a glass is already pouring at midnight, it logs into the day it started. A hidden tab catches up when it's shown again or within 30 s.
-- **Small screens, first visit:** on the smallest phones and in landscape, the guide can overlap the edge of Ripple's fin or crest, never its face, until it's dismissed.
-- **Not covered by these checks:**
-  - sound: Web Audio output can't be heard by the harness;
-  - the feel of animation timings: they're checked as states (which clip, how strong), not by eye;
-  - screen readers: the axe test passes, but TalkBack and VoiceOver weren't used.
-- **Outside the lab: two main-app unit tests depend on the time of day.**
-  - The tests: `src/App.test.tsx` › "keeps a line a day in the journal" and "a goal day brings a message in a bottle the next morning".
-  - What happened: they failed in a run at about 05:50 and passed unchanged at 06:17.
-  - Why it's pre-existing: the app files haven't changed since 10 November. The voyage logic has a night/morning boundary, and these tests use the real clock.
-  - What to do: the tests should pin the clock. It's a separate fix in the app, not part of this pass.
-- **Hydration checks per device:** the full hydration section ran on desktop and Android. iPhone and landscape ran the "interactions log nothing; one pour logs 250 ml" check.
+- **Repeatable conditions this round:**
+  - a production build served on its own port;
+  - a fresh browser per run, with Chromium's background throttling turned off;
+  - the display held awake (`caffeinate -dimu`);
+  - no other test browsers running (the harness now always closes them).
+- **Where the scripts are:** the investigation scripts and harness are kept outside the repo. The lasting coverage lives in the repository's own tests (`src/lab/engine/lab.test.ts`, `e2e/lab.spec.ts`).
+- **The previous round's full matrix** (camera, interactions, hydration, onboarding and layout per device, with method) is the earlier version of this file, in checkpoint commit `ea1d5bf`: `git show ea1d5bf:docs/hero-lab-qa.md`.

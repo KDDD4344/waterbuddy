@@ -37,7 +37,7 @@
 
 ## QA and stability pass
 
-The full test report is in [`hero-lab-qa.md`](hero-lab-qa.md). It covers what works on each device, what failed, the 11 bugs found and fixed (two tabs overwriting each other, a page left open past midnight, Undo's target, the guide returning, landscape phones, and more) and what remains untested.
+The current QA report is [`hero-lab-qa.md`](hero-lab-qa.md): automated results, real-device status (none yet), issues fixed, known limitations and what still needs a person. The procedure for real phones is [`hero-lab-device-testing.md`](hero-lab-device-testing.md). The lab is **not release-ready** until that procedure has been run on a real iPhone and a real Android phone.
 
 ## Interactive environment (iteration 7)
 

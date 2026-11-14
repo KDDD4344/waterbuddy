@@ -17,7 +17,10 @@ import {
   formatMl,
   GLASS_ML,
   logGlass,
+  entryKey,
+  mergeDays,
   restoreDay,
+  sameDay,
   localDate,
   removeEntry,
   serializeDay,
@@ -157,12 +160,15 @@ export default function HeroLab() {
           setUndoable(true);
           // The true total (another tab may have logged while this glass poured).
           setShownMl(drunk(dayRef.current));
-          if (plan.reachedGoal) setStatus(`${formatMl(plan.toMl)}. That's today's goal, and Ripple is celebrating.`);
+          // Screen-reader users hear that Undo is there (it's just before the Pour button).
+          const undoNote = ' Undo is available just before the Pour button.';
+          if (plan.reachedGoal)
+            setStatus(`${formatMl(plan.toMl)}. That's today's goal, and Ripple is celebrating.${undoNote}`);
           else if (plan.pastGoal)
             setStatus(
-              `Logged ${formatMl(GLASS_ML)}; ${formatMl(plan.toMl)} today. Today's goal is already met, so there's no need for more unless you're thirsty.`
+              `Logged ${formatMl(GLASS_ML)}; ${formatMl(plan.toMl)} today. Today's goal is already met, so there's no need for more unless you're thirsty.${undoNote}`
             );
-          else setStatus(`Poured ${formatMl(GLASS_ML)}. ${formatMl(plan.toMl)} of ${formatMl(plan.goal)}.`);
+          else setStatus(`Poured ${formatMl(GLASS_ML)}. ${formatMl(plan.toMl)} of ${formatMl(plan.goal)}.${undoNote}`);
         },
         onQuality: (q) => setRender(`${q.quality} quality · ${q.dpr.toFixed(2)}× resolution`),
         onReaction: () => {},
@@ -192,19 +198,32 @@ export default function HeroLab() {
   }, [webgl]);
 
   // Every change to the day is saved at once, so a reload or a closed tab never loses a glass.
+  // It's merged with what's stored first: another tab may have saved a glass a moment ago, and
+  // saving this tab's copy over it would lose that glass.
   useEffect(() => {
     if (fromStorage.current) {
       fromStorage.current = false;
       return;
     }
-    storeSet(DAY_KEY, serializeDay(day, dayDate.current));
+    const stored = restoreDay(storeGet(DAY_KEY), dayDate.current);
+    const merged = stored ? mergeDays(day, stored) : day;
+    storeSet(DAY_KEY, serializeDay(merged, dayDate.current));
+    if (!sameDay(merged, day)) {
+      fromStorage.current = true;
+      dayRef.current = merged;
+      adoptDay(merged, '');
+    }
   }, [day]);
 
   /** Show a day that came from elsewhere (another tab, or a new calendar day). */
   const adoptDay = (d: Day, why: string) => {
     setDay(d);
-    setUndoable(false);
-    undoEntry.current = null;
+    // Undo stays offered while its glass is still there (a merge only adds the other tab's).
+    const u = undoEntry.current;
+    if (!u || !d.logs.some((l) => entryKey(l) === entryKey(u))) {
+      setUndoable(false);
+      undoEntry.current = null;
+    }
     if (!sceneRef.current?.pouring) {
       setShownMl(drunk(d));
       sceneRef.current?.setProgress(Math.min(1, drunk(d) / d.goal), true);
@@ -241,11 +260,17 @@ export default function HeroLab() {
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== DAY_KEY || e.newValue === null) return;
-      const d = restoreDay(e.newValue, new Date());
-      if (!d) return;
-      fromStorage.current = true;
-      dayRef.current = d;
-      adoptDay(d, '');
+      const incoming = restoreDay(e.newValue, dayDate.current);
+      if (!incoming) return;
+      // Merge, never replace: if both tabs saved at the same moment, the other tab's save may
+      // be missing this tab's glass, so the merged day is written back and both converge.
+      const merged = mergeDays(dayRef.current, incoming);
+      if (!sameDay(merged, incoming)) storeSet(DAY_KEY, serializeDay(merged, dayDate.current));
+      if (!sameDay(merged, dayRef.current)) {
+        fromStorage.current = true;
+        dayRef.current = merged;
+        adoptDay(merged, '');
+      }
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -264,12 +289,17 @@ export default function HeroLab() {
     if (explored) storeSet(GUIDE_KEY, '1');
   }, [explored]);
 
-  // Undo is a short window after each glass, not a permanent button.
+  // Undo is a short window after each glass, not a permanent button. The countdown pauses
+  // while Undo has keyboard focus or a pointer over it (no one loses it mid-reach), and starts
+  // again when they move away.
+  const [undoHeld, setUndoHeld] = useState(false);
   useEffect(() => {
-    if (!undoable) return;
+    if (!undoable || undoHeld) return;
     const id = window.setTimeout(() => setUndoable(false), UNDO_SECONDS * 1000);
     return () => window.clearTimeout(id);
-  }, [undoable]);
+  }, [undoable, undoHeld]);
+  const pourRef = useRef<HTMLButtonElement>(null);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => sceneRef.current?.setReduced(reduced), [reduced]);
   useEffect(() => sceneRef.current?.setSound(sound), [sound]);
@@ -314,6 +344,7 @@ export default function HeroLab() {
     setDay(out.day);
     setPouring(true);
     setUndoable(false);
+    setUndoHeld(false);
     setChip((c) => c + 1);
     setStatus(`${out.pastGoal ? 'Logging' : 'Pouring'} ${formatMl(GLASS_ML)}…`);
     if (out.rushing && Date.now() - guardDismissedAt.current > 60 * 60 * 1000) setGuard(true);
@@ -334,6 +365,9 @@ export default function HeroLab() {
     sceneRef.current?.setProgress(Math.min(1, total / out.day.goal), true);
     setGuard(false);
     setStatus(`Undone. ${formatMl(total)} of ${formatMl(out.day.goal)} today.`);
+    // Undo disappears; keep keyboard focus nearby instead of losing it to the page.
+    setUndoHeld(false);
+    pourRef.current?.focus();
   };
 
   const closeGuide = () => {
@@ -458,8 +492,18 @@ export default function HeroLab() {
             {met ? 'Goal met for today' : `${Math.ceil((day.goal - total) / GLASS_ML)} glasses to go`}
           </p>
         </div>
-        <div className="lab-menu">
+        <div
+          className="lab-menu"
+          onKeyDown={(e) => {
+            // Escape closes the menu and returns focus to its button.
+            if (e.key === 'Escape' && menu) {
+              setMenu(false);
+              menuBtnRef.current?.focus();
+            }
+          }}
+        >
           <button
+            ref={menuBtnRef}
             type="button"
             className="lab-iconbtn"
             aria-expanded={menu}
@@ -589,7 +633,13 @@ export default function HeroLab() {
       <section ref={dockRef} className="lab-dock" aria-label="Log water">
         <div className="lab-actions">
           {undoable && !pouring && (
-            <p className="lab-undo">
+            <p
+              className="lab-undo"
+              onFocus={() => setUndoHeld(true)}
+              onBlur={() => setUndoHeld(false)}
+              onPointerEnter={() => setUndoHeld(true)}
+              onPointerLeave={() => setUndoHeld(false)}
+            >
               <span>{formatMl(GLASS_ML)} logged</span>
               <button type="button" className="lab-text-btn" onClick={undo}>
                 Undo
@@ -597,6 +647,7 @@ export default function HeroLab() {
             </p>
           )}
           <button
+            ref={pourRef}
             type="button"
             className="lab-pour"
             data-calm={met || undefined}

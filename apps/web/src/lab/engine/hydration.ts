@@ -13,6 +13,21 @@ export const GLASS_ML = 250;
  */
 export interface LogEntry extends TimedAmount {
   source?: 'logged' | 'seeded';
+  /**
+   * A unique id, so two tabs that log at the same moment merge instead of overwriting each
+   * other. Older saved entries without one get a stable id from their contents (`entryKey`).
+   */
+  id?: string;
+}
+
+/** The identity of an entry: its id, or (for older saves) its kind, time and amount. */
+export function entryKey(l: LogEntry): string {
+  return l.id ?? `${l.source ?? 'logged'}|${l.at}|${l.ml}`;
+}
+
+function newId(): string {
+  const c = globalThis.crypto as Crypto | undefined;
+  return c?.randomUUID ? c.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export interface Day {
@@ -23,6 +38,11 @@ export interface Day {
    * logging again can never earn a second celebration.
    */
   celebrated?: boolean;
+  /**
+   * Keys of entries that were undone. Kept so another tab that still has the entry can't bring
+   * it back when the two are merged.
+   */
+  removed?: string[];
 }
 
 export interface LogOutcome {
@@ -58,7 +78,7 @@ export function logGlass(day: Day, now: Date, ml = GLASS_ML, drankAt: Date = now
   const reachedGoal = before < day.goal && after >= day.goal && !day.celebrated;
   const next: Day = {
     ...day,
-    logs: [...day.logs, { ml, at: at.toISOString(), source: 'logged' }],
+    logs: [...day.logs, { ml, at: at.toISOString(), source: 'logged', id: newId() }],
     ...(reachedGoal ? { celebrated: true } : {})
   };
   return {
@@ -83,7 +103,7 @@ export function startingDay(goal = 2000, startMl = 750, now = new Date()): Day {
   for (let ml = 0, i = 0; ml < startMl; ml += GLASS_ML, i++) {
     // Spread over the morning, and marked as seeded so they never count as drinking speed.
     const at = Math.max(midnight, now.getTime() - (4 - i) * 90 * 60 * 1000);
-    logs.push({ ml: GLASS_ML, at: new Date(at).toISOString(), source: 'seeded' });
+    logs.push({ ml: GLASS_ML, at: new Date(at).toISOString(), source: 'seeded', id: `seed-${i}` });
   }
   return { goal, logs };
 }
@@ -120,26 +140,57 @@ export function serializeDay(day: Day, date: Date | string): string {
 }
 
 /**
- * Removes one specific entry (the glass an Undo was offered for), matched by its time and
- * amount. Anything else, including a second Undo for the same glass, changes nothing.
+ * Removes one specific entry (the glass an Undo was offered for), matched by its identity, and
+ * remembers it was removed. Anything else, including a second Undo for the same glass, changes
+ * nothing.
  */
-export function removeEntry(day: Day, entry: Pick<LogEntry, 'at' | 'ml'>): { day: Day; removed: LogEntry | null } {
-  const i = day.logs.findIndex((l) => l.source !== 'seeded' && l.at === entry.at && l.ml === entry.ml);
+export function removeEntry(day: Day, entry: LogEntry): { day: Day; removed: LogEntry | null } {
+  const key = entryKey(entry);
+  const i = day.logs.findIndex((l) => l.source !== 'seeded' && entryKey(l) === key);
   if (i < 0) return { day, removed: null };
   const logs = day.logs.slice();
   const [removed] = logs.splice(i, 1);
-  return { day: { ...day, logs }, removed: removed! };
+  return { day: { ...day, logs, removed: [...(day.removed ?? []), key] }, removed: removed! };
+}
+
+/**
+ * Combines two copies of the same day (this tab's and another tab's): every glass either one
+ * has, minus anything either one undid. Order-independent and repeatable, so two tabs that
+ * save at the same moment end up with the same day and nothing lost.
+ */
+export function mergeDays(a: Day, b: Day): Day {
+  const removed = [...new Set([...(a.removed ?? []), ...(b.removed ?? [])])];
+  const gone = new Set(removed);
+  const byKey = new Map<string, LogEntry>();
+  for (const l of [...a.logs, ...b.logs]) {
+    const k = entryKey(l);
+    if (!gone.has(k) && !byKey.has(k)) byKey.set(k, l);
+  }
+  const logs = [...byKey.values()].sort((x, y) => x.at.localeCompare(y.at) || entryKey(x).localeCompare(entryKey(y)));
+  return {
+    goal: a.goal,
+    logs,
+    ...(a.celebrated || b.celebrated ? { celebrated: true } : {}),
+    ...(removed.length ? { removed } : {})
+  };
+}
+
+/** True when two days hold the same entries, removals and celebration. */
+export function sameDay(a: Day, b: Day): boolean {
+  const sig = (d: Day) =>
+    JSON.stringify([d.goal, d.logs.map(entryKey).sort(), [...(d.removed ?? [])].sort(), !!d.celebrated]);
+  return sig(a) === sig(b);
 }
 
 /**
  * Reads a saved day back. Returns null (so the caller starts fresh) when there's nothing
  * saved, it's from another day, or it doesn't look right; a bad entry is never half-loaded.
  */
-export function restoreDay(raw: string | null, now: Date): Day | null {
+export function restoreDay(raw: string | null, now: Date | string): Day | null {
   if (!raw) return null;
   try {
     const o = JSON.parse(raw) as Partial<Day> & { v?: number; date?: string };
-    if (o.v !== STORE_VERSION || o.date !== localDate(now)) return null;
+    if (o.v !== STORE_VERSION || o.date !== (typeof now === 'string' ? now : localDate(now))) return null;
     if (typeof o.goal !== 'number' || !(o.goal > 0 && o.goal <= 10000) || !Array.isArray(o.logs)) return null;
     const logs: LogEntry[] = [];
     for (const l of o.logs as unknown[]) {
@@ -147,9 +198,17 @@ export function restoreDay(raw: string | null, now: Date): Day | null {
       if (typeof e.ml !== 'number' || !(e.ml > 0 && e.ml <= 2000)) return null;
       if (typeof e.at !== 'string' || Number.isNaN(Date.parse(e.at))) return null;
       if (e.source !== undefined && e.source !== 'logged' && e.source !== 'seeded') return null;
-      logs.push({ ml: e.ml, at: e.at, ...(e.source ? { source: e.source } : {}) });
+      if (e.id !== undefined && (typeof e.id !== 'string' || e.id.length > 100)) return null;
+      logs.push({ ml: e.ml, at: e.at, ...(e.source ? { source: e.source } : {}), ...(e.id ? { id: e.id } : {}) });
     }
-    return { goal: o.goal, logs, ...(o.celebrated ? { celebrated: true } : {}) };
+    const removed = o.removed;
+    if (removed !== undefined && !(Array.isArray(removed) && removed.every((k) => typeof k === 'string'))) return null;
+    return {
+      goal: o.goal,
+      logs,
+      ...(o.celebrated ? { celebrated: true } : {}),
+      ...(removed?.length ? { removed } : {})
+    };
   } catch {
     return null;
   }

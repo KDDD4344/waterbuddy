@@ -11,6 +11,15 @@
 .lab-stage {
   position: absolute;
   inset: 0;
+  /* Press-and-hold on the water must not open iOS's selection loupe or callout menu. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* A quick double-tap on a button presses it twice (guarded in code); it must never zoom the page. */
+.lab button,
+.lab label {
+  touch-action: manipulation;
 }
 .lab-stage:focus-visible {
   outline: 3px solid var(--wb-ochre);

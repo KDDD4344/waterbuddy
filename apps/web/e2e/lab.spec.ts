@@ -247,6 +247,35 @@ test.describe('Hero Lab', () => {
     await expect(page.locator('.lab-num')).toHaveText('1,250');
   });
 
+  test('two tabs pouring at the same moment keep both glasses', async ({ page, context }) => {
+    await page.goto('/lab/');
+    const other = await context.newPage();
+    await other.goto('/lab/');
+    for (const p of [page, other]) await expect(p.getByRole('button', { name: 'Pour 250 ml' })).toBeEnabled();
+    // Both press Pour at the same instant (scheduled on the shared clock).
+    const at = Date.now() + 1500;
+    await Promise.all(
+      [page, other].map((p) =>
+        p.evaluate(
+          (t) =>
+            new Promise<void>((res) =>
+              setTimeout(
+                () => {
+                  (document.querySelector('.lab-pour') as HTMLButtonElement).click();
+                  res();
+                },
+                Math.max(0, t - Date.now())
+              )
+            ),
+          at
+        )
+      )
+    );
+    for (const p of [page, other]) await expect(p.locator('.lab-num')).toHaveText('1,250', { timeout: 20_000 });
+    await page.reload();
+    await expect(page.locator('.lab-num')).toHaveText('1,250');
+  });
+
   test('the guide retires once someone has looked around and touched something', async ({ page }) => {
     await page.goto('/lab/?dev');
     const guide = page.getByRole('region', { name: 'Explore the spring' });
