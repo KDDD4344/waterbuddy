@@ -415,7 +415,7 @@ function BuildInfo() {
         <dt>Reminder server</dt>
         <dd>{api}</dd>
         <dt>Version</dt>
-        <dd>{__APP_VERSION__} · pilot</dd>
+        <dd>{__APP_VERSION__}</dd>
       </dl>
     </section>
   );

@@ -63,9 +63,11 @@ export function RemindersSettings({ profile }: { profile: Profile }) {
   return (
     <section className="group" aria-labelledby="g-remind">
       <h2 id="g-remind">Reminders</h2>
-      <p className="small muted">
-        One gentle reminder a day, at most. It never comes once your goal is reached, or after last call ({clockLabel(lastCallTime(bedtime))}).
-      </p>
+      {support !== 'no-server' && (
+        <p className="small muted">
+          One gentle reminder a day, at most. It never comes once your goal is reached, or after last call ({clockLabel(lastCallTime(bedtime))}).
+        </p>
+      )}
 
       {!remindersAllowed(profile.ageBand) ? (
         <p className="note">
